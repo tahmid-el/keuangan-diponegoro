@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<h3>Dashboard</h3>
+<h3 class="mb-4">Dashboard</h3>
 
-<div class="row">
+<div class="row mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm p-3">
             <h6>Saldo Kas</h6>

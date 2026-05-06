@@ -8,43 +8,125 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* Custom global style */
+/* =========================
+   GLOBAL COLOR VARIABLES
+========================= */
+:root {
+    --primary-blue: #123F8C;
+    --cream-bg: #E7E5D6;
+    --white: #ffffff;
+    --dark-text: #2b2b2b;
+    --light-border: #e0e0e0;
+}
+
+/* =========================
+   BODY
+========================= */
 body {
-    background-color: #E7E5D6;
+    background-color: var(--cream-bg);
     font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
+/* =========================
+   NAVBAR
+========================= */
 .navbar-custom {
-    background-color: #123F8C;
+    background-color: var(--cream-bg);
+    border-bottom: 1px solid #d6d3c4;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
 }
 
+/* =========================
+   SIDEBAR
+========================= */
 .sidebar {
     min-height: 100vh;
-    background-color: #123F8C;
+    background-color: var(--primary-blue);
     color: white;
+    padding-top: 20px;
 }
 
+/* logo section */
+.sidebar-logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* menu */
 .sidebar .nav-link {
     color: white;
+    margin-bottom: 10px;
+    padding: 12px 20px;
+    border-radius: 15px;
+    transition: 0.3s;
 }
 
+/* active menu */
+.sidebar .nav-link.active {
+    background-color: var(--cream-bg);
+    color: var(--dark-text);
+    font-weight: bold;
+}
+
+/* hover menu */
 .sidebar .nav-link:hover {
-    background-color: #E7E5D6;
-    color: #123F8C;
-    border-radius: 8px;
+    background-color: var(--cream-bg);
+    color: var(--dark-text);
 }
 
+/* logout button */
+.logout-btn {
+    margin-top: 80px;
+}
+
+/* =========================
+   CONTENT AREA
+========================= */
 .content {
-    padding: 20px;
-    background-color: #ffffff;
+    padding: 25px;
+    background-color: var(--cream-bg);
     min-height: 100vh;
 }
 
+/* =========================
+   CARD
+========================= */
 .card {
+    background-color: var(--white);
     border: none;
-    border-radius: 12px;
+    border-radius: 18px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+}
+
+/* =========================
+   BUTTON
+========================= */
+.btn-primary {
+    background-color: var(--primary-blue);
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0d2f69;
+}
+
+/* =========================
+   TABLE
+========================= */
+.table {
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead {
+    background-color: var(--primary-blue);
+    color: white;
 }
