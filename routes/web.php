@@ -12,3 +12,9 @@ Route::view('/data_siswa', 'data_siswa');
 Route::view('/pembayaran', 'pembayaran');
 Route::view('/tabungan', 'tabungan');
 Route::view('/tagihan', 'tagihan');
+
+// Login Routes
+Route::view('/login/bendahara', 'auth.login-bendahara')->name('login.bendahara');
+
+// Bendahara Routes
+Route::view('/bendahara/dashboard', 'bendahara.dashboard')->name('bendahara.dashboard');
