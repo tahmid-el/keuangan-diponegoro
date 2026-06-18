@@ -1,4 +1,4 @@
-@extends('bendahara.layouts.app')
+@extends('layouts.app')
 
 @section('content')
 
