@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BendaharaController;
 use App\Http\Controllers\KepsekController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\PengeluaranController;
 
 // ─────────────────────────────────────────────
 // HALAMAN UTAMA → redirect ke login
@@ -21,14 +22,19 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ─────────────────────────────────────────────
+// DASHBOARD UMUM
+// ─────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+});
+
+// ─────────────────────────────────────────────
 // BENDAHARA
 // ─────────────────────────────────────────────
 Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendahara.')->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', [BendaharaController::class, 'dashboard'])->name('dashboard');
-    Route::get('/histori',[BendaharaController::class,'histori'])->name('histori.index');
-    
+    // Histori (Log Aktivitas)
+    Route::get('/histori', [\App\Http\Controllers\HistoryController::class, 'index'])->name('histori.index');
     // Data Siswa
     Route::get('/siswa',                      [SiswaController::class, 'index'])->name('siswa.index');
     Route::get('/siswa/tambah-baru',          [SiswaController::class, 'tambahBaru'])->name('siswa.tambah-baru');
@@ -62,6 +68,22 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
     Route::post('/tabungan/tarik',        [BendaharaController::class, 'tabunganSimpanTarik'])->name('tabungan.simpan-tarik');
     Route::get('/tabungan/{siswa}',       [BendaharaController::class, 'tabunganDetail'])->name('tabungan.detail');
 
+    // Pengeluaran
+    Route::get('/pengeluaran', [\App\Http\Controllers\PengeluaranController::class, 'index'])->name('pengeluaran.index');
+    Route::get('/pengeluaran/tambah', [\App\Http\Controllers\PengeluaranController::class, 'create'])->name('pengeluaran.create');
+    Route::post('/pengeluaran', [\App\Http\Controllers\PengeluaranController::class, 'store'])->name('pengeluaran.store');
+    Route::get('/pengeluaran/{id}/edit', [\App\Http\Controllers\PengeluaranController::class, 'edit'])->name('pengeluaran.edit');
+    Route::put('/pengeluaran/{id}', [\App\Http\Controllers\PengeluaranController::class, 'update'])->name('pengeluaran.update');
+    Route::delete('/pengeluaran/{id}', [\App\Http\Controllers\PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
+
+    // Pemasukan
+    Route::get('/pemasukan', [\App\Http\Controllers\PemasukanController::class, 'index'])->name('pemasukan.index');
+    Route::get('/pemasukan/tambah', [\App\Http\Controllers\PemasukanController::class, 'create'])->name('pemasukan.create');
+    Route::post('/pemasukan', [\App\Http\Controllers\PemasukanController::class, 'store'])->name('pemasukan.store');
+    Route::get('/pemasukan/{id}/edit', [\App\Http\Controllers\PemasukanController::class, 'edit'])->name('pemasukan.edit');
+    Route::put('/pemasukan/{id}', [\App\Http\Controllers\PemasukanController::class, 'update'])->name('pemasukan.update');
+    Route::delete('/pemasukan/{id}', [\App\Http\Controllers\PemasukanController::class, 'destroy'])->name('pemasukan.destroy');
+
     // Laporan
     Route::get('/laporan',                [BendaharaController::class, 'laporan'])->name('laporan');
 });
@@ -70,7 +92,6 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
 // KEPALA SEKOLAH (hanya bisa lihat laporan)
 // ─────────────────────────────────────────────
 Route::middleware(['auth', 'role:kepala_sekolah'])->prefix('kepsek')->name('kepsek.')->group(function () {
-    Route::get('/dashboard', [KepsekController::class, 'dashboard'])->name('dashboard');
     Route::get('/laporan',   [KepsekController::class, 'laporan'])->name('laporan');
 });
 
@@ -78,7 +99,6 @@ Route::middleware(['auth', 'role:kepala_sekolah'])->prefix('kepsek')->name('keps
 // SISWA (hanya bisa lihat tagihan & tabungan sendiri)
 // ─────────────────────────────────────────────
 Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->group(function () {
-    Route::get('/dashboard', [SiswaController::class, 'dashboard'])->name('dashboard');
     Route::get('/tagihan',   [SiswaController::class, 'tagihan'])->name('tagihan');
     Route::get('/tabungan',  [SiswaController::class, 'tabungan'])->name('tabungan');
 });

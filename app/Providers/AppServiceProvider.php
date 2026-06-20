@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\Pemasukan;
+use App\Models\Pengeluaran;
+use App\Observers\PemasukanObserver;
+use App\Observers\PengeluaranObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Pemasukan::observe(PemasukanObserver::class);
+        Pengeluaran::observe(PengeluaranObserver::class);
     }
 }
