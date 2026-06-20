@@ -1,0 +1,151 @@
+@extends('layouts.app')
+
+@section('title', 'Pengeluaran')
+
+@section('content')
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    }
+    .btn-custom-danger {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: white;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        padding: 0.5rem 1.25rem;
+    }
+    .btn-custom-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        color: white;
+    }
+    .btn-action {
+        border-radius: 8px;
+        padding: 0.375rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(220, 38, 38, 0.05);
+        transition: background-color 0.2s ease;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Data Pengeluaran</h2>
+        <p class="text-muted mb-0">Kelola semua arus kas keluar</p>
+    </div>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <form action="{{ route('bendahara.pengeluaran.index') }}" method="GET" class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Filter Tanggal -->
+            <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-3 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
+                <i class="bi bi-calendar3 text-muted"></i>
+                <input type="date" name="startdate" class="form-control border-0 bg-transparent p-1" value="{{ request('startdate') }}" title="Dari Tanggal">
+                <span class="text-muted fw-bold">-</span>
+                <input type="date" name="enddate" class="form-control border-0 bg-transparent p-1" value="{{ request('enddate') }}" title="Sampai Tanggal">
+            </div>
+            
+            <!-- Filter Kategori & Tombol -->
+            <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-2 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
+                <select name="jenis_pengeluaran" class="form-select border-0 bg-transparent p-1" style="min-width: 160px;">
+                    <option value="">Semua Kategori</option>
+                    <option value="Operasional" {{ request('jenis_pengeluaran') == 'Operasional' ? 'selected' : '' }}>Operasional Sekolah</option>
+                    <option value="Gaji & Honor" {{ request('jenis_pengeluaran') == 'Gaji & Honor' ? 'selected' : '' }}>Gaji & Honor</option>
+                    <option value="Pemeliharaan" {{ request('jenis_pengeluaran') == 'Pemeliharaan' ? 'selected' : '' }}>Pemeliharaan Fasilitas</option>
+                    <option value="Konsumsi" {{ request('jenis_pengeluaran') == 'Konsumsi' ? 'selected' : '' }}>Konsumsi</option>
+                    <option value="Lainnya" {{ request('jenis_pengeluaran') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                </select>
+                
+                <div class="vr mx-1"></div>
+                
+                <button type="submit" class="btn btn-light rounded-pill shadow-sm px-3 fw-medium d-flex align-items-center gap-1 text-danger" title="Cari / Terapkan">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                @if(request('startdate') || request('enddate') || request('jenis_pengeluaran'))
+                    <a href="{{ route('bendahara.pengeluaran.index') }}" class="btn btn-light rounded-circle shadow-sm text-danger" style="width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center;" title="Reset Filter">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
+        <a href="{{ route('bendahara.pengeluaran.create') }}" class="btn btn-custom-danger text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem;">
+            <i class="bi bi-dash-circle me-1"></i> Catat
+        </a>
+    </div>
+</div>
+
+@if(session('success'))
+<div class="alert alert-success border-0 rounded-4 shadow-sm mb-4">
+    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+</div>
+@endif
+
+<div class="glass-card p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="border-0 rounded-start">Tanggal</th>
+                    <th class="border-0">Keterangan</th>
+                    <th class="border-0">Kategori</th>
+                    <th class="border-0">Nominal</th>
+                    <th class="border-0">Bukti</th>
+                    <th class="border-0 rounded-end text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($pengeluarans as $p)
+                <tr>
+                    <td>{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</td>
+                    <td>
+                        <span class="fw-medium text-dark">{{ $p->keterangan }}</span>
+                        @if($p->deskripsi)
+                        <div class="text-muted small" style="font-size: 11px;">{{ Str::limit($p->deskripsi, 50) }}</div>
+                        @endif
+                    </td>
+                    <td><span class="badge bg-danger bg-opacity-10 text-danger">{{ $p->jenis_pengeluaran }}</span></td>
+                    <td class="fw-bold text-danger">Rp {{ number_format($p->nominal, 0, ',', '.') }}</td>
+                    <td>
+                        @if($p->bukti)
+                            <a href="{{ asset('storage/' . $p->bukti) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="bi bi-image"></i> Lihat
+                            </a>
+                        @else
+                            <span class="text-muted small">-</span>
+                        @endif
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ route('bendahara.pengeluaran.edit', $p->id) }}" class="btn btn-sm btn-warning text-white btn-action" title="Edit">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <form action="{{ route('bendahara.pengeluaran.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger btn-action" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Belum ada data pengeluaran.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-end mt-3">
+        {{ $pengeluarans->links() }}
+    </div>
+</div>
+@endsection
