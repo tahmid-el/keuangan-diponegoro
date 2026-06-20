@@ -9,11 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('siswa', function (Blueprint $table) {
-            $table->enum('jenis_kelamin', ['L', 'P'])
-                  ->default('L')
-                  ->after('telepon');
-
-            $table->string('nama_ortu')->nullable()->after('jenis_kelamin');
+            if(!Schema::hasColumn('siswa', 'jenis_kelamin')) {
+                $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])
+                      ->default('Laki-laki')
+                      ->after('telepon');
+    
+                $table->string('nama_ortu')->nullable()->after('jenis_kelamin');
+            }
         });
     }
 
