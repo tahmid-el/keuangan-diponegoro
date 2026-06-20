@@ -13,32 +13,46 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --sidebar-bg: #133e87;
-            --main-bg: #f4f3ea; /* Light beige matching the image */
+            --sidebar-width: 280px;
+            --navbar-height: 70px;
             --text-light: #ffffff;
             --text-dark: #000000;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--main-bg);
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top left, #e2e8f0 0%, #cbd5e1 100%);
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
         }
+
+        /* Animated Blobs for Background */
+        body::before, body::after {
+            content: ''; position: fixed; border-radius: 50%; filter: blur(80px);
+            z-index: -1; animation: float 10s infinite ease-in-out alternate;
+        }
+        body::before { width: 400px; height: 400px; background: rgba(19,62,135,0.25); top: -100px; right: -100px; }
+        body::after  { width: 500px; height: 500px; background: rgba(76,201,240,0.25); bottom: -150px; left: -150px; animation-delay: -5s; }
+        @keyframes float { 0% { transform: translate(0,0); } 100% { transform: translate(30px,30px); } }
 
         /* Sidebar Styling */
         .sidebar {
-            background-color: var(--sidebar-bg);
+            width: var(--sidebar-width);
+            background: rgba(19, 62, 135, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-light);
-            width: 280px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -129,14 +143,14 @@
 
         /* Active Menu Item */
         .nav-link.active {
-            background-color: var(--main-bg);
-            color: var(--text-dark);
-            border-color: var(--main-bg);
+            background-color: white;
+            color: var(--sidebar-bg);
+            border-color: white;
             font-weight: 600;
         }
 
         .nav-link.active i {
-            color: var(--text-dark);
+            color: var(--sidebar-bg);
         }
 
         /* Logout Button */
@@ -172,21 +186,24 @@
 
         /* Main Content Area */
         .main-wrapper {
-            margin-left: 280px;
+            margin-left: var(--sidebar-width);
             min-height: 100vh;
+            background-color: transparent;
+            transition: margin-left 0.3s ease;
             display: flex;
             flex-direction: column;
         }
 
         /* Top Navbar */
         .top-navbar {
-            background-color: var(--main-bg);
+            height: var(--navbar-height);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
             position: sticky;
             top: 0;
             z-index: 999;
@@ -295,94 +312,108 @@
         }
     </style>
 </head>
-<body>
+<body x-data="{ sidebarOpen: false }">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'show': sidebarOpen }">
         <div class="sidebar-header">
             <div class="sidebar-logo">
-                <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=MTs+D&background=133e87&color=fff'">
+                <img src="{{ asset('images/dipo.png') }}" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=MTs+D&background=133e87&color=fff'">
             </div>
             <div class="sidebar-title-container">
                 <div class="sidebar-title">Sistem Rekapitulasi Informasi Keuangan</div>
-                <div class="sidebar-subtitle">Mts DIPONEGORO TEGALSARI</div>
+                <div class="sidebar-subtitle">MTs DIPONEGORO TEGALSARI</div>
             </div>
         </div>
 
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="{{ route('bendahara.dashboard') }}" class="nav-link {{ request()->routeIs('bendahara.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="bi bi-house-door"></i>
                     Dashboard
                 </a>
             </li>
+
+            @if(auth()->check() && auth()->user()->role == 'bendahara')
             <li class="nav-item">
-                <a href="{{ route('bendahara.siswa.index') }}" 
+                <a href="{{ route('bendahara.siswa.index') ?? '#' }}" 
                    class="nav-link {{ request()->routeIs('bendahara.siswa.*') ? 'active' : '' }}">
                     <i class="bi bi-mortarboard"></i>
                     Data Siswa
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('bendahara.tagihan.index') }}" 
+                <a href="{{ route('bendahara.tagihan.index') ?? '#' }}" 
                    class="nav-link {{ request()->routeIs('bendahara.tagihan.*') ? 'active' : '' }}">
                     <i class="bi bi-receipt"></i>
                     Tagihan
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('bendahara.pembayaran.index') }}" 
+                <a href="{{ route('bendahara.pembayaran.index') ?? '#' }}" 
                    class="nav-link {{ request()->routeIs('bendahara.pembayaran.*') ? 'active' : '' }}">
                     <i class="bi bi-wallet2"></i>
                     Pembayaran
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('bendahara.tabungan.index') }}" 
+                <a href="{{ route('bendahara.tabungan.index') ?? '#' }}" 
                    class="nav-link {{ request()->routeIs('bendahara.tabungan.*') ? 'active' : '' }}">
                     <i class="bi bi-cash-stack"></i>
                     Tabungan
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('bendahara.histori.index') }}" 
+                <a href="{{ route('bendahara.histori.index') ?? '#' }}" 
                    class="nav-link {{ request()->routeIs('bendahara.histori.*') ? 'active' : '' }}">
                     <i class="bi bi-clock-history"></i>
-                    Histori Pembayaran
+                    Histori
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{{ route('bendahara.pemasukan.index') ?? '#' }}" class="nav-link {{ request()->routeIs('bendahara.pemasukan.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-arrow-down"></i>
                     Pemasukan
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{{ route('bendahara.pengeluaran.index') ?? '#' }}" class="nav-link {{ request()->routeIs('bendahara.pengeluaran.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-arrow-up"></i>
                     Pengeluaran
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-clock-history"></i>
-                    History
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{{ route('bendahara.laporan') ?? '#' }}" class="nav-link {{ request()->routeIs('bendahara.laporan') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-text"></i>
                     Laporan
                 </a>
             </li>
-        </ul>
+            @endif
 
-        <div class="logout-container">
-            <a href="/logout" class="btn-logout">
-                <i class="bi bi-box-arrow-in-left"></i>
-                Logout
-            </a>
-        </div>
+            @if(auth()->check() && auth()->user()->role == 'kepala_sekolah')
+            <li class="nav-item">
+                <a href="{{ route('kepsek.laporan') ?? '#' }}" class="nav-link {{ request()->routeIs('kepsek.laporan') ? 'active' : '' }}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Laporan
+                </a>
+            </li>
+            @endif
+
+            @if(auth()->check() && auth()->user()->role == 'siswa')
+            <li class="nav-item">
+                <a href="{{ route('siswa.tagihan') ?? '#' }}" class="nav-link {{ request()->routeIs('siswa.tagihan') ? 'active' : '' }}">
+                    <i class="bi bi-receipt"></i>
+                    Tagihan Saya
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('siswa.tabungan') ?? '#' }}" class="nav-link {{ request()->routeIs('siswa.tabungan') ? 'active' : '' }}">
+                    <i class="bi bi-cash-stack"></i>
+                    Tabungan Saya
+                </a>
+            </li>
+            @endif
+        </ul>
     </aside>
 
     <!-- MAIN WRAPPER -->
@@ -390,14 +421,62 @@
         
         <!-- TOP NAVBAR -->
         <header class="top-navbar">
-            <div class="navbar-left">
-                <i class="bi bi-list menu-toggle"></i>
-                <h1 class="role-title">Admin</h1> <!-- Text 'Admin' based on user image -->
+            <div class="navbar-left d-flex align-items-center">
+                <i class="bi bi-list menu-toggle me-3" style="cursor:pointer;" @click="sidebarOpen = !sidebarOpen"></i>
+                <h1 class="role-title m-0 d-none d-md-block" style="color: var(--sidebar-bg);">{{ ucfirst(auth()->user()->role ?? 'Guest') }}</h1>
             </div>
             
-            <div class="search-container">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Cari di sini...">
+            <div class="navbar-right d-flex align-items-center">
+                <div class="search-container me-4 d-none d-lg-block">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Cari di sini...">
+                </div>
+
+                <!-- User Profile Dropdown (Alpine.js) -->
+                <div class="user-profile position-relative" x-data="{ userMenuOpen: false }">
+                    <div class="d-flex align-items-center p-2" style="cursor: pointer; border-radius: 30px; transition: background 0.2s;" @click="userMenuOpen = !userMenuOpen" @click.outside="userMenuOpen = false" :style="userMenuOpen ? 'background: rgba(19, 62, 135, 0.08);' : ''" onmouseover="this.style.background='rgba(19, 62, 135, 0.05)'" onmouseout="if(!userMenuOpen) this.style.background='transparent'">
+                        <div class="text-end me-3 d-none d-sm-block">
+                            <div style="font-weight: 600; font-size: 14px; color: var(--text-dark);">{{ auth()->user()->name ?? 'Pengguna' }}</div>
+                            <div style="font-size: 12px; color: #64748b;">{{ auth()->user()->email ?? 'user@email.com' }}</div>
+                        </div>
+                        <div class="avatar-circle shadow-sm" style="width: 40px; height: 40px; background: linear-gradient(135deg, #133e87, #2463d1); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px;">
+                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                        </div>
+                        <i class="bi bi-chevron-down ms-2 text-muted" style="font-size: 14px;"></i>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="userMenuOpen" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform scale-95"
+                         x-transition:enter-end="opacity-100 transform scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 transform scale-100"
+                         x-transition:leave-end="opacity-0 transform scale-95"
+                         style="display: none; position: absolute; right: 0; top: 120%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 240px; z-index: 1000; padding: 12px;">
+                        
+                        <div class="d-block d-sm-none p-2 border-bottom mb-2">
+                            <div style="font-weight: 600; font-size: 14px;">{{ auth()->user()->name ?? 'Pengguna' }}</div>
+                            <div style="font-size: 12px; color: #64748b; word-break: break-all;">{{ auth()->user()->email ?? 'user@email.com' }}</div>
+                        </div>
+                        
+                        <div class="p-2">
+                            <div style="font-size: 11px; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 5px;">Akses & Peran</div>
+                            <div class="badge rounded-pill" style="background-color: rgba(19, 62, 135, 0.1); color: var(--sidebar-bg); font-weight: 600; padding: 6px 12px;">
+                                <i class="bi bi-shield-check me-1"></i> {{ ucfirst(str_replace('_', ' ', auth()->user()->role ?? 'Guest')) }}
+                            </div>
+                        </div>
+                        
+                        <hr class="my-2" style="border-color: #eee;">
+                        
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn w-100 text-start d-flex align-items-center" style="color: #ef4444; border-radius: 8px; padding: 10px 12px; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                                <i class="bi bi-box-arrow-right me-2" style="font-size: 18px;"></i> Keluar
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </header>
 

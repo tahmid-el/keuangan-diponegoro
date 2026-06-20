@@ -61,9 +61,12 @@ class AuthController extends Controller
     private function redirectByRole(string $role)
     {
         return match ($role) {
-            'bendahara'      => redirect()->route('bendahara.dashboard'),
-            'kepala_sekolah' => redirect()->route('kepsek.dashboard'),
-            'siswa'          => redirect()->route('siswa.dashboard'),
+            // 'bendahara'      => redirect()->route('bendahara.dashboard'),
+            // 'kepala_sekolah' => redirect()->route('kepsek.dashboard'),
+            // 'siswa'          => redirect()->route('siswa.dashboard'),
+            'bendahara'      => redirect()->route('dashboard'),
+            'kepala_sekolah' => redirect()->route('dashboard'),
+            'siswa'          => redirect()->route('dashboard'),
             default          => redirect()->route('login'),
         };
     }
