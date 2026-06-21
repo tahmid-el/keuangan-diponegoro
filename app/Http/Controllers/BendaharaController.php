@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Pemasukan;
+use App\Models\Pengeluaran;
+use Carbon\Carbon;
 
 class BendaharaController extends Controller
 {
@@ -50,5 +53,56 @@ class BendaharaController extends Controller
     public function tabunganDetail($siswa){ return view('tabungan'); }
 
     // ── Laporan ─────────────────────────────
-    public function laporan() { return view('laporan'); }
+    public function laporan(Request $request) 
+    { 
+        $bulan = $request->input('bulan', Carbon::now()->format('m'));
+        $tahun = $request->input('tahun', Carbon::now()->format('Y'));
+        $jenisLaporan = $request->input('jenis_laporan', 'Semua');
+
+        $startDate = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth()->format('Y-m-d');
+        $endDate = Carbon::createFromDate($tahun, $bulan, 1)->endOfMonth()->format('Y-m-d');
+
+        $laporan = collect();
+
+        if ($jenisLaporan == 'Semua' || $jenisLaporan == 'Pemasukan') {
+            $pemasukan = Pemasukan::whereBetween('tanggal', [$startDate, $endDate])->get()->map(function($item) {
+                return [
+                    'tanggal' => $item->tanggal,
+                    'created_at' => $item->created_at,
+                    'keterangan' => $item->keterangan,
+                    'kategori' => $item->sumber_dana,
+                    'tipe' => 'Pemasukan',
+                    'pemasukan' => $item->nominal,
+                    'pengeluaran' => 0
+                ];
+            });
+            $laporan = $laporan->merge($pemasukan);
+        }
+
+        if ($jenisLaporan == 'Semua' || $jenisLaporan == 'Pengeluaran') {
+            $pengeluaran = Pengeluaran::whereBetween('tanggal', [$startDate, $endDate])->get()->map(function($item) {
+                return [
+                    'tanggal' => $item->tanggal,
+                    'created_at' => $item->created_at,
+                    'keterangan' => $item->keterangan,
+                    'kategori' => $item->jenis_pengeluaran,
+                    'tipe' => 'Pengeluaran',
+                    'pemasukan' => 0,
+                    'pengeluaran' => $item->nominal
+                ];
+            });
+            $laporan = $laporan->merge($pengeluaran);
+        }
+
+        // Sort by tanggal then created_at (ascending)
+        $laporan = $laporan->sortBy(function($item) {
+            return $item['tanggal'] . ' ' . $item['created_at'];
+        })->values();
+
+        $totalPemasukan = $laporan->sum('pemasukan');
+        $totalPengeluaran = $laporan->sum('pengeluaran');
+        $saldoAkhir = $totalPemasukan - $totalPengeluaran;
+
+        return view('laporan', compact('laporan', 'bulan', 'tahun', 'startDate', 'endDate', 'jenisLaporan', 'totalPemasukan', 'totalPengeluaran', 'saldoAkhir'));
+    }
 }
