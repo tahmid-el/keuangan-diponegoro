@@ -77,7 +77,7 @@
     <div class="login-card">
         <div class="login-header">
             <div class="school-logo-container">
-                <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo Sekolah"
+                <img src="{{ asset('images/dipo.png') }}" alt="Logo Sekolah"
                      onerror="this.src='https://ui-avatars.com/api/?name=MTs+D&background=133e87&color=fff&size=128'">
             </div>
             <div class="role-badge"><i class="bi bi-shield-lock me-1"></i> Portal Login</div>

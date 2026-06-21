@@ -18,6 +18,13 @@ class DashboardController extends Controller
         $startDate = $request->input('startdate', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('enddate', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
+        // Jika user memaksa input URL secara manual terbalik (start > end), swap otomatis
+        if ($startDate > $endDate) {
+            $temp = $startDate;
+            $startDate = $endDate;
+            $endDate = $temp;
+        }
+
         // Saldo Kas = Semua Pemasukan (All Time) - Semua Pengeluaran (All Time)
         $totalPemasukanAll = Pemasukan::sum('nominal');
         $totalPengeluaranAll = Pengeluaran::sum('nominal');

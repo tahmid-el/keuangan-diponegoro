@@ -38,23 +38,30 @@
 </style>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-    <div>
-        <h2 class="fw-bold text-dark mb-0">Data Pemasukan</h2>
-        <p class="text-muted mb-0">Kelola semua dana masuk di luar pembayaran siswa</p>
+    <div class="w-full mb-4 d-flex flex-wrap align-items-center justify-between">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Data Pemasukan</h2>
+            <p class="text-muted mb-0">Kelola semua dana masuk di luar pembayaran siswa</p>
+        </div>
+
+        <a href="{{ route('bendahara.pemasukan.create') }}" class="btn btn-custom-primary text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem;">
+            <i class="bi bi-plus-circle me-1"></i> Tambah
+        </a>
     </div>
     <div class="d-flex align-items-center gap-3 flex-wrap">
         <form action="{{ route('bendahara.pemasukan.index') }}" method="GET" class="d-flex flex-wrap align-items-center gap-2">
             <!-- Filter Tanggal -->
             <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-3 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
-                <i class="bi bi-calendar3 text-muted"></i>
-                <input type="date" name="startdate" class="form-control border-0 bg-transparent p-1" value="{{ request('startdate') }}" title="Dari Tanggal">
-                <span class="text-muted fw-bold">-</span>
-                <input type="date" name="enddate" class="form-control border-0 bg-transparent p-1" value="{{ request('enddate') }}" title="Sampai Tanggal">
+                <span class="text-muted fw-medium" style="font-size: 14px;">Dari</span>
+                <input type="date" name="startdate" class="form-control border-0 bg-transparent p-1" value="{{ request('startdate') }}" style="max-width: 130px; cursor: pointer;" title="Dari Tanggal">
+                <div class="vr mx-1"></div>
+                <span class="text-muted fw-medium" style="font-size: 14px;">Sampai</span>
+                <input type="date" name="enddate" class="form-control border-0 bg-transparent p-1" value="{{ request('enddate') }}" style="max-width: 130px; cursor: pointer;" title="Sampai Tanggal">
             </div>
             
             <!-- Filter Kategori & Tombol -->
             <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-2 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
-                <select name="sumber_dana" class="form-select border-0 bg-transparent p-1" style="min-width: 160px;">
+                <select name="sumber_dana" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" style="min-width: 160px;">
                     <option value="">Semua Sumber Dana</option>
                     <option value="Pembayaran Siswa" {{ request('sumber_dana') == 'Pembayaran Siswa' ? 'selected' : '' }}>Pembayaran Siswa</option>
                     <option value="Assessment" {{ request('sumber_dana') == 'Assessment' ? 'selected' : '' }}>Assessment</option>
@@ -62,22 +69,18 @@
                     <option value="Donasi" {{ request('sumber_dana') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
                     <option value="Lainnya" {{ request('sumber_dana') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
                 </select>
-                
-                <div class="vr mx-1"></div>
-                
-                <button type="submit" class="btn btn-light rounded-pill shadow-sm px-3 fw-medium d-flex align-items-center gap-1 text-primary" title="Cari / Terapkan">
-                    <i class="bi bi-funnel"></i> Filter
-                </button>
-                @if(request('startdate') || request('enddate') || request('sumber_dana'))
-                    <a href="{{ route('bendahara.pemasukan.index') }}" class="btn btn-light rounded-circle shadow-sm text-danger" style="width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center;" title="Reset Filter">
-                        <i class="bi bi-x-circle-fill"></i>
-                    </a>
-                @endif
+                <input type="text" name="search" class="form-control border-0 bg-transparent p-1" placeholder="Cari keterangan..." value="{{ request('search') }}" style="max-width: 150px;">
             </div>
+            
+            <button type="submit" class="btn btn-primary text-white fw-medium rounded-pill shadow-sm px-4 d-flex align-items-center gap-2" style="height: 40px; border: 1px solid rgba(255,255,255,0.4);">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            @if(request('startdate') || request('enddate') || request('sumber_dana') || request('search'))
+                <a href="{{ route('bendahara.pemasukan.index') }}" class="btn btn-danger text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center transition" style="width:40px; height:40px; border: 1px solid rgba(255,255,255,0.4);" title="Reset Filter">
+                    <i class="bi bi-x-lg" style="font-size: 14px; font-weight: bold;"></i>
+                </a>
+            @endif
         </form>
-        <a href="{{ route('bendahara.pemasukan.create') }}" class="btn btn-custom-primary text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem;">
-            <i class="bi bi-plus-circle me-1"></i> Tambah
-        </a>
     </div>
 </div>
 
