@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pemasukan;
 use App\Models\Pengeluaran;
+use App\Models\Kategori;
 use Carbon\Carbon;
 
 class BendaharaController extends Controller
@@ -58,19 +59,30 @@ class BendaharaController extends Controller
         $bulan = $request->input('bulan', Carbon::now()->format('m'));
         $tahun = $request->input('tahun', Carbon::now()->format('Y'));
         $jenisLaporan = $request->input('jenis_laporan', 'Semua');
+        $kategoriId = $request->input('kategori_id');
 
         $startDate = Carbon::createFromDate($tahun, $bulan, 1)->startOfMonth()->format('Y-m-d');
         $endDate = Carbon::createFromDate($tahun, $bulan, 1)->endOfMonth()->format('Y-m-d');
 
+        $kategoris = match($jenisLaporan) {
+            'Pemasukan' => Kategori::pemasukan()->orderBy('nama')->get(),
+            'Pengeluaran' => Kategori::pengeluaran()->orderBy('nama')->get(),
+            default => Kategori::orderBy('nama')->get(),
+        };
+
         $laporan = collect();
 
         if ($jenisLaporan == 'Semua' || $jenisLaporan == 'Pemasukan') {
-            $pemasukan = Pemasukan::whereBetween('tanggal', [$startDate, $endDate])->get()->map(function($item) {
+            $query = Pemasukan::with('kategori')->whereBetween('tanggal', [$startDate, $endDate]);
+            if ($kategoriId) {
+                $query->where('kategori_id', $kategoriId);
+            }
+            $pemasukan = $query->get()->map(function($item) {
                 return [
                     'tanggal' => $item->tanggal,
                     'created_at' => $item->created_at,
                     'keterangan' => $item->keterangan,
-                    'kategori' => $item->sumber_dana,
+                    'kategori' => $item->kategori->nama ?? '-',
                     'tipe' => 'Pemasukan',
                     'pemasukan' => $item->nominal,
                     'pengeluaran' => 0
@@ -80,12 +92,16 @@ class BendaharaController extends Controller
         }
 
         if ($jenisLaporan == 'Semua' || $jenisLaporan == 'Pengeluaran') {
-            $pengeluaran = Pengeluaran::whereBetween('tanggal', [$startDate, $endDate])->get()->map(function($item) {
+            $query = Pengeluaran::with('kategori')->whereBetween('tanggal', [$startDate, $endDate]);
+            if ($kategoriId) {
+                $query->where('kategori_id', $kategoriId);
+            }
+            $pengeluaran = $query->get()->map(function($item) {
                 return [
                     'tanggal' => $item->tanggal,
                     'created_at' => $item->created_at,
                     'keterangan' => $item->keterangan,
-                    'kategori' => $item->jenis_pengeluaran,
+                    'kategori' => $item->kategori->nama ?? '-',
                     'tipe' => 'Pengeluaran',
                     'pemasukan' => 0,
                     'pengeluaran' => $item->nominal
@@ -94,7 +110,6 @@ class BendaharaController extends Controller
             $laporan = $laporan->merge($pengeluaran);
         }
 
-        // Sort by tanggal then created_at (ascending)
         $laporan = $laporan->sortBy(function($item) {
             return $item['tanggal'] . ' ' . $item['created_at'];
         })->values();
@@ -103,6 +118,6 @@ class BendaharaController extends Controller
         $totalPengeluaran = $laporan->sum('pengeluaran');
         $saldoAkhir = $totalPemasukan - $totalPengeluaran;
 
-        return view('laporan', compact('laporan', 'bulan', 'tahun', 'startDate', 'endDate', 'jenisLaporan', 'totalPemasukan', 'totalPengeluaran', 'saldoAkhir'));
+        return view('laporan', compact('laporan', 'bulan', 'tahun', 'startDate', 'endDate', 'jenisLaporan', 'kategoriId', 'kategoris', 'totalPemasukan', 'totalPengeluaran', 'saldoAkhir'));
     }
 }

@@ -61,13 +61,11 @@
             
             <!-- Filter Kategori & Tombol -->
             <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-2 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
-                <select name="sumber_dana" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" style="min-width: 160px;">
-                    <option value="">Semua Sumber Dana</option>
-                    <option value="Pembayaran Siswa" {{ request('sumber_dana') == 'Pembayaran Siswa' ? 'selected' : '' }}>Pembayaran Siswa</option>
-                    <option value="Assessment" {{ request('sumber_dana') == 'Assessment' ? 'selected' : '' }}>Assessment</option>
-                    <option value="Dana BOS" {{ request('sumber_dana') == 'Dana BOS' ? 'selected' : '' }}>Dana BOS</option>
-                    <option value="Donasi" {{ request('sumber_dana') == 'Donasi' ? 'selected' : '' }}>Donasi</option>
-                    <option value="Lainnya" {{ request('sumber_dana') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                <select name="kategori_id" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" style="min-width: 160px;">
+                    <option value="">Semua Kategori</option>
+                    @foreach($kategoris as $k)
+                    <option value="{{ $k->id }}" {{ request('kategori_id') == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                    @endforeach
                 </select>
                 <input type="text" name="search" class="form-control border-0 bg-transparent p-1" placeholder="Cari keterangan..." value="{{ request('search') }}" style="max-width: 150px;">
             </div>
@@ -75,7 +73,7 @@
             <button type="submit" class="btn btn-primary text-white fw-medium rounded-pill shadow-sm px-4 d-flex align-items-center gap-2" style="height: 40px; border: 1px solid rgba(255,255,255,0.4);">
                 <i class="bi bi-funnel"></i> Filter
             </button>
-            @if(request('startdate') || request('enddate') || request('sumber_dana') || request('search'))
+            @if(request('startdate') || request('enddate') || request('kategori_id') || request('search'))
                 <a href="{{ route('bendahara.pemasukan.index') }}" class="btn btn-danger text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center transition" style="width:40px; height:40px; border: 1px solid rgba(255,255,255,0.4);" title="Reset Filter">
                     <i class="bi bi-x-lg" style="font-size: 14px; font-weight: bold;"></i>
                 </a>
@@ -113,7 +111,7 @@
                         <div class="text-muted small" style="font-size: 11px;">{{ Str::limit($p->deskripsi, 50) }}</div>
                         @endif
                     </td>
-                    <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ $p->sumber_dana }}</span></td>
+                    <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ $p->kategori->nama ?? '-' }}</span></td>
                     <td class="fw-bold text-success">Rp {{ number_format($p->nominal, 0, ',', '.') }}</td>
                     <td>
                         @if($p->bukti)

@@ -122,6 +122,13 @@
                     <option value="Pengeluaran" {{ $jenisLaporan == 'Pengeluaran' ? 'selected' : '' }}>Hanya Pengeluaran</option>
                 </select>
                 <div class="vr mx-1"></div>
+                <select name="kategori_id" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" style="min-width: 160px;">
+                    <option value="">Semua Kategori</option>
+                    @foreach($kategoris as $k)
+                        <option value="{{ $k->id }}" {{ (string) $kategoriId === (string) $k->id ? 'selected' : '' }}>{{ $k->nama }} ({{ ucfirst($k->tipe) }})</option>
+                    @endforeach
+                </select>
+                <div class="vr mx-1"></div>
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-medium" style="background-color: var(--sidebar-bg); border: none;">Terapkan</button>
             </div>
         </form>
@@ -165,6 +172,14 @@
                 <h4 class="text-danger-custom fw-bold mb-0">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h4>
             </div>
         </div>
+        @if($kategoriId)
+        <div class="col-md-12">
+            <div class="glass-card p-3">
+                <div class="text-muted small fw-medium mb-1">Total Kategori Terpilih</div>
+                <h4 class="fw-bold mb-0">Rp {{ number_format($totalPemasukan + $totalPengeluaran, 0, ',', '.') }}</h4>
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Table -->
