@@ -19,7 +19,8 @@
                     🔍
                 </span>
             </div>
-            <a href="/tambah_pembayaran" class="btn btn-light btn-sm border px-4">
+            <a href="{{ route('bendahara.pembayaran.tambah') }}"
+                class="btn btn-primary">
                 Tambah
             </a>
         </div>
@@ -47,23 +48,55 @@
 
                     <tbody style="font-size:12px;">
 
-                        @for ($i = 1; $i <= 8; $i++)
+                    @if($pembayarans->count())
+
+                        @foreach($pembayarans as $index => $pembayaran)
+
                         <tr>
-                            <td>{{ $i }}.</td>
-                            <td>4981</td>
-                            <td>ZAKI NAUFAL ABIDILAH</td>
-                            <td>0000</td>
-                            <td>1.500.000</td>
-                            <td>Cicilan</td>
+
+                            <td>{{ $index + 1 }}</td>
+
+                            <td>{{ $pembayaran->nis }}</td>
+
+                            <td>{{ $pembayaran->nama_siswa }}</td>
+
+                            <td>{{ $pembayaran->no_kwitansi }}</td>
+
                             <td>
-                                <a href="{{ url('/edit_pembayaran') }}"class="btn btn-light border px-5 rounded-4 shadow-sm">
+                                Rp {{ number_format($pembayaran->nominal, 0, ',', '.') }}
+                            </td>
+
+                            <td>{{ $pembayaran->nama_pembayaran }}</td>
+
+                            <td>
+
+                                <a href="{{ route('bendahara.pembayaran.edit', $pembayaran->id) }}"
+                                    class="btn btn-light border px-4 rounded-4 shadow-sm">
                                     Edit
                                 </a>
+
                             </td>
+
                         </tr>
-                        @endfor
+
+                        @endforeach
+
+                    @else
+
+                    <tr>
+
+                        <td colspan="7" class="text-center py-4">
+
+                            Data pembayaran belum tersedia.
+
+                        </td>
+
+                    </tr>
+
+                    @endif
 
                     </tbody>
+    
 
                 </table>
             </div>

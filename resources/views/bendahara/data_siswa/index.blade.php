@@ -51,7 +51,7 @@
                     <option value="aktif"    {{ request('status') == 'aktif'    ? 'selected' : '' }}>Aktif</option>
                     <option value="lulus"    {{ request('status') == 'lulus'    ? 'selected' : '' }}>Lulus</option>
                     <option value="pindah"   {{ request('status') == 'pindah'   ? 'selected' : '' }}>Pindah</option>
-                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-aktif</option>
+                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                 </select>
 
                 {{-- Pencarian --}}
@@ -65,16 +65,14 @@
             </form>
 
             {{-- Tombol Tambah --}}
-            <div class="dropdown">
-                <div class="dropdown">
+            <div>
+                <div>
                     <button class="btn btn-primary dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
+                            type="button">
                         Tambah
                     </button>
 
-                    <ul class="dropdown-menu">
+                    <ul>
                         <li>
                             <a class="dropdown-item"
                             href="{{ route('bendahara.siswa.tambah-baru') }}">
@@ -100,13 +98,14 @@
     </div>
 
     {{-- Tabel --}}
-    <div id="btn btn-primary" onclick="showFormTambah()">
+    <div>
         <div class="card border-0 shadow-sm rounded-3 mx-3">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0 text-center" style="font-size:12px;">
                         <thead style="background:#F8F8F8;">
                             <tr>
+                                <th width="40"><input type="checkbox" id="checkAll"></th>
                                 <th>No.</th>
                                 <th>NIS</th>
                                 <th>Nama Siswa</th>
@@ -114,6 +113,7 @@
                                 <th>Jenis Kelamin</th>
                                 <th>Orang Tua</th>
                                 <th>Telepon</th>
+                                <th>Jenis Tagihan</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -121,32 +121,60 @@
                         <tbody>
                             @forelse($siswa as $index => $s)
                             <tr>
+                                <td><input type="checkbox" class="check-item" name="siswa_ids[]" value="{{ $s->id }}"></td>
                                 <td>{{ $siswa->firstItem() + $index }}</td>
                                 <td>{{ $s->nis }}</td>
                                 <td class="text-start">{{ $s->nama_siswa }}</td>
                                 <td>{{ $s->kelas?->nama_kelas ?? '-' }}</td>
-                                <td>{{ $s->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
-                                <td class="text-start">{{ $s->nama_ortu ?? '-' }}</td>
+                                <td>{{ $s->jenis_kelamin ?? '-'}}</td>
+                                <td class="text-start">{{ $s->orang_tua ?? '-' }}</td>
                                 <td>{{ $s->telepon ?? '-' }}</td>
-                                <td>{!! $s->status_badge !!}</td>
+                                <td>{{ $s->jenisTagihan?->nama_tagihan ?? '-' }}</td>
                                 <td>
+
+                                @if($s->status == 'aktif')
+                                    <span class="badge bg-success">Aktif</span>
+
+                                @elseif($s->status == 'lulus')
+                                    <span class="badge bg-primary">Lulus</span>
+
+                                @elseif($s->status == 'pindah')
+                                    <span class="badge bg-warning text-dark">Pindah</span>
+
+                                @elseif($s->status == 'nonaktif')
+                                    <span class="badge bg-danger">Non Aktif</span>
+
+                                @else
+                                    <span class="badge bg-secondary">
+                                        {{ $s->status }}
+                                    </span>
+                                @endif
+
+                                </td>
+                                <td>
+
                                     {{-- Edit --}}
                                     <a href="{{ route('bendahara.siswa.edit', $s) }}"
-                                    class="btn btn-warning btn-sm mb-1">
-                                        <i class="bi bi-pencil"></i>
+                                        class="btn btn-warning btn-sm mb-1">
+                                         <i class="bi bi-pencil"></i>
                                     </a>
 
                                     {{-- Arsipkan --}}
-                                    <button class="btn btn-secondary btn-sm mb-1"
+                                    <button type="button"
+                                            class="btn btn-secondary btn-sm mb-1"
                                             onclick="arsipSiswa({{ $s->id }}, '{{ $s->nama_siswa }}')">
                                         <i class="bi bi-archive"></i>
                                     </button>
 
-                                    {{-- Hapus --}}
-                                    <button class="btn btn-danger btn-sm mb-1"
-                                            onclick="hapusSiswa({{ $s->id }}, '{{ $s->nama_siswa }}')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    {{-- Form Arsip --}}
+                                    <form id="arsip-{{ $s->id }}"
+                                        action="{{ route('bendahara.siswa.arsip', $s->id) }}"
+                                        method="POST"
+                                        style="display:none">
+                                        @csrf
+                                        @method('PATCH')
+                                    </form>
+
                                 </td>
                             </tr>
                             @empty
@@ -167,18 +195,42 @@
                     {{ $siswa->links() }}
                 </div>
                 @endif
-            </div>
-        </div>
-    </div>
-    
-</div>
 
-{{-- Modal Arsipkan --}}
+                    <div class="card shadow"
+                        style="
+                            display:none;
+                            position:fixed;
+                            right:25px;
+                            bottom:25px;
+                            width:320px;
+                            z-index:999;
+                        ">
+
+                        {{-- Modal Arsipkan --}}
 <div class="modal fade" id="modalArsip" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
+            <div id="floatingNaikKelas" class="card shadow position-fixed p-3" style="display:none;bottom:20px;right:20px;z-index:1055;min-width:320px;">
+                <form id="formNaikKelas" action="{{ route('bendahara.siswa.naik-kelas') }}" method="POST">
+                @csrf
+                    <div class="fw-bold mb-2" id="jumlahDipilih">0 siswa dipilih</div>
+                        <div class="mb-2">
+                            <label class="form-label">Kelas Tujuan</label>
+                            <select name="kelas_tujuan" class="form-select">
+                                @foreach($kelasList as $k)
+                                    <option value="{{ $k->id }}">{{ $k->tingkat.' '.$k->nama_kelas }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                        <button class="btn btn-success" type="submit">Naikkan Kelas</button>
+                        <button class="btn btn-secondary" type="button" onclick="document.getElementById('floatingNaikKelas').style.display='none'">Batal</button>
+                    </div>
+                </form>
+            </div>
+
             <div class="modal-header">
-                <h6 class="modal-title">Arsipkan Siswa</h6>
+            <h6 class="modal-title">Arsipkan Siswa</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="formArsip" method="POST">
@@ -188,7 +240,7 @@
                     <select name="status" class="form-select">
                         <option value="lulus">Lulus</option>
                         <option value="pindah">Pindah</option>
-                        <option value="nonaktif">Non-aktif</option>
+                        <option value="nonaktif">Non Aktif</option>
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -200,40 +252,73 @@
     </div>
 </div>
 
-{{-- Modal Hapus --}}
-<div class="modal fade" id="modalHapus" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title text-danger">Hapus Siswa</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Yakin ingin menghapus data <strong id="namaHapus"></strong>?</p>
-                <p class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>Data yang dihapus tidak bisa dikembalikan!</p>
-            </div>
-            <div class="modal-footer">
-                <form id="formHapus" method="POST">
-                    @csrf @method('DELETE')
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-danger">Hapus</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
-function arsipSiswa(id, nama) {
-    document.getElementById('namaArsip').textContent = nama;
-    document.getElementById('formArsip').action = '/bendahara/siswa/' + id + '/arsip';
+function arsipSiswa(id, nama)
+{
+    document.getElementById('namaArsip').innerText = nama;
+
+    document.getElementById('formArsip').action =
+        '/bendahara/siswa/' + id + '/arsip'; 
+
     new bootstrap.Modal(document.getElementById('modalArsip')).show();
 }
 
-function hapusSiswa(id, nama) {
-    document.getElementById('namaHapus').textContent = nama;
-    document.getElementById('formHapus').action = '/bendahara/siswa/' + id;
-    new bootstrap.Modal(document.getElementById('modalHapus')).show();
-}
+
 </script>
+
+    @push('scripts')
+    <script>
+
+    const checkAll = document.getElementById('checkAll');
+    const checkItems = document.querySelectorAll('.check-item');
+
+    const floating = document.getElementById('floatingNaikKelas');
+    const jumlahDipilih = document.getElementById('jumlahDipilih');
+
+    function updateFloatingPanel() {
+
+        const checked = document.querySelectorAll('.check-item:checked');
+
+        if (checked.length > 0) {
+
+            floating.style.display = 'block';
+            jumlahDipilih.innerText = checked.length + ' siswa dipilih';
+
+        } else {
+
+            floating.style.display = 'none';
+
+        }
+
+    }
+
+    checkAll.addEventListener('change', function () {
+
+        checkItems.forEach(function(item){
+
+            item.checked = checkAll.checked;
+
+        });
+
+        updateFloatingPanel();
+
+    });
+
+    checkItems.forEach(function(item){
+
+        item.addEventListener('change', function(){
+
+            checkAll.checked =
+                document.querySelectorAll('.check-item:checked').length
+                === checkItems.length;
+
+            updateFloatingPanel();
+
+        });
+
+    });
+
+    </script>
+    @endpush
 @endsection

@@ -3,11 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pemasukan;
 use App\Models\Pengeluaran;
 use App\Models\Kategori;
 use Carbon\Carbon;
+use App\Models\Siswa;
+use App\Models\Tagihan;
+use App\Models\Pembayaran;
+use App\Models\Tabungan;
+use App\Models\TahunAjaran;
+use App\Models\Kelas;
 
 class BendaharaController extends Controller
 {
@@ -29,29 +36,6 @@ class BendaharaController extends Controller
     public function siswaEdit($siswa){ return view('edit_data_siswa'); }
     public function siswaUpdate(Request $r, $siswa){ /* Tahap 3 */ }
     public function siswaHapus($siswa){ /* Tahap 3 */ }
-
-    // ── Tagihan ─────────────────────────────
-    public function tagihanDaftar()  { return view('tagihan'); }
-    public function tagihanTambah()  { return view('tambah_tagihan'); }
-    public function tagihanSimpan(Request $r){ /* Tahap 3 */ }
-    public function tagihanHapus($tagihan){ /* Tahap 3 */ }
-
-    // ── Pembayaran ──────────────────────────
-    public function pembayaranDaftar() { return view('pembayaran'); }
-    public function pembayaranTambah() { return view('tambah_pembayaran'); }
-    public function pembayaranSimpan(Request $r){ /* Tahap 3 */ }
-    public function pembayaranEdit($id){ return view('edit_pembayaran'); }
-    public function pembayaranUpdate(Request $r, $id){ /* Tahap 3 */ }
-    public function pembayaranHapus($id){ /* Tahap 3 */ }
-    public function historiIndex() {return view('pembayaran'); }
-
-    // ── Tabungan ────────────────────────────
-    public function tabunganDaftar()  { return view('tabungan'); }
-    public function tabunganSetor()   { return view('setor_tabungan'); }
-    public function tabunganSimpanSetor(Request $r){ /* Tahap 3 */ }
-    public function tabunganTarik()   { return view('tarik_tabungan'); }
-    public function tabunganSimpanTarik(Request $r){ /* Tahap 3 */ }
-    public function tabunganDetail($siswa){ return view('tabungan'); }
 
     // ── Laporan ─────────────────────────────
     public function laporan(Request $request) 

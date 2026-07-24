@@ -59,12 +59,14 @@
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-light);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
             position: fixed;
             left: 0;
             top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
             z-index: 1000;
         }
 
@@ -113,6 +115,8 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            padding-right: 15px; /* Leave space on right for the rounded corners */
+            flex: 1;
             padding: 0 15px; /* Leave space on right for the rounded corners */
             flex-grow: 1;
         }
@@ -124,7 +128,8 @@
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            padding: 4px 20px;
+            min-height: 46px;
             color: var(--text-light);
             text-decoration: none;
             font-size: 16px;
@@ -340,6 +345,14 @@
                 </a>
             </li>
 
+            <li class="nav-item">
+                <a href="{{ route('bendahara.tahun_ajaran.index') }}"
+                class="nav-link {{ request()->routeIs('bendahara.tahun_ajaran.*') ? 'active' : '' }}">
+                    <i class="bi bi-calendar3"></i>
+                    Tahun Ajaran
+                </a>
+            </li>
+
             @if(auth()->check() && auth()->user()->role == 'bendahara')
             <li class="nav-item">
                 <a href="{{ route('bendahara.siswa.index') ?? '#' }}" 
@@ -495,7 +508,38 @@
 
         <!-- CONTENT AREA -->
         <main class="content-area">
-            
+
+            <!-- ALERT SUCCESS -->
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show mb-3">
+                {{ session('success') }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+            @endif
+
+            <!-- ALERT ERROR -->
+            @if ($errors->any())
+            <div class="alert alert-danger">
+
+                <strong>
+                    Data belum tersimpan, perbaiki form berikut:
+                </strong>
+
+                <ul class="mb-0 mt-2">
+
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+
+                </ul>
+
+            </div>
+            @endif
+                        
             <!-- Page Content injects here -->
             @yield('content')
 
@@ -508,6 +552,8 @@
     <!-- ApexCharts for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     @stack('scripts')
     <!-- Script untuk membatasi input Date Range secara dinamis -->
     <script>
