@@ -87,16 +87,14 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-floating mb-3">
-                            <select class="form-select" id="jenis_pengeluaran" name="jenis_pengeluaran" required>
-                                <option value="" disabled {{ !isset($pengeluaran) ? 'selected' : '' }}>Pilih Jenis...</option>
-                                <option value="Operasional" {{ old('jenis_pengeluaran', $pengeluaran->jenis_pengeluaran ?? '') == 'Operasional' ? 'selected' : '' }}>Operasional Sekolah</option>
-                                <option value="Gaji & Honor" {{ old('jenis_pengeluaran', $pengeluaran->jenis_pengeluaran ?? '') == 'Gaji & Honor' ? 'selected' : '' }}>Gaji & Honor</option>
-                                <option value="Pemeliharaan" {{ old('jenis_pengeluaran', $pengeluaran->jenis_pengeluaran ?? '') == 'Pemeliharaan' ? 'selected' : '' }}>Pemeliharaan Fasilitas</option>
-                                <option value="Konsumsi" {{ old('jenis_pengeluaran', $pengeluaran->jenis_pengeluaran ?? '') == 'Konsumsi' ? 'selected' : '' }}>Konsumsi</option>
-                                <option value="Lainnya" {{ old('jenis_pengeluaran', $pengeluaran->jenis_pengeluaran ?? '') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
-                            </select>
-                            <label for="jenis_pengeluaran">Jenis Pengeluaran</label>
+                        <div class="form-floating mb-3 position-relative">
+                            <input type="text" class="form-control" id="kategori_input" placeholder="Ketik nama kategori..."
+                                value="{{ old('kategori_input', isset($pengeluaran) && $pengeluaran->kategori ? $pengeluaran->kategori->nama : '') }}"
+                                autocomplete="off" required>
+                            <label for="kategori_input">Kategori Pengeluaran</label>
+                            <input type="hidden" name="kategori_id" id="kategori_id" value="{{ old('kategori_id', $pengeluaran->kategori_id ?? '') }}">
+                            <input type="hidden" name="kategori_baru" id="kategori_baru" value="">
+                            <div id="kategori_suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 200px; overflow-y: auto; border-radius: 0 0 12px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);"></div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -149,6 +147,56 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.value = "";
             }
         });
+    }
+});
+
+const kategoriInput = document.getElementById('kategori_input');
+const kategoriId = document.getElementById('kategori_id');
+const kategoriBaru = document.getElementById('kategori_baru');
+const suggestions = document.getElementById('kategori_suggestions');
+let debounceTimer;
+
+kategoriInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    kategoriId.value = '';
+    kategoriBaru.value = this.value.trim();
+
+    debounceTimer = setTimeout(() => {
+        const query = this.value.trim();
+        if (query.length < 1) {
+            suggestions.style.display = 'none';
+            return;
+        }
+
+        fetch(`{{ route('bendahara.api.kategoris.search') }}?tipe=pengeluaran&q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestions.innerHTML = '';
+                if (data.length === 0) {
+                    suggestions.innerHTML = `<div class="list-group-item text-muted">Kategori baru: ${query}</div>`;
+                } else {
+                    data.forEach(kategori => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action';
+                        item.textContent = kategori.nama;
+                        item.onclick = () => {
+                            kategoriInput.value = kategori.nama;
+                            kategoriId.value = kategori.id;
+                            kategoriBaru.value = '';
+                            suggestions.style.display = 'none';
+                        };
+                        suggestions.appendChild(item);
+                    });
+                }
+                suggestions.style.display = 'block';
+            });
+    }, 200);
+});
+
+document.addEventListener('click', function(e) {
+    if (!kategoriInput.contains(e.target) && !suggestions.contains(e.target)) {
+        suggestions.style.display = 'none';
     }
 });
 </script>

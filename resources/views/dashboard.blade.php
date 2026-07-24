@@ -140,6 +140,7 @@
     <div class="col-md-8">
         <div class="glass-card p-3 h-100" style="animation-delay: 0.5s;">
             <h6 style="color: var(--sidebar-bg); font-weight: 600;" class="mb-3">Statistik Keuangan (Pemasukan - Pengeluaran)</h6>
+            <p class="text-muted small mb-3"><i class="bi bi-calendar3 me-2"></i>Periode: <strong>{{ \Carbon\Carbon::parse($startDate)->translatedFormat('d M Y') }}</strong> s/d <strong>{{ \Carbon\Carbon::parse($endDate)->translatedFormat('d M Y') }}</strong></p>
             <div style="background: rgba(255,255,255,0.4); border-radius: 10px;">
                 <div id="financeChart" style="min-height: 250px;"></div>
             </div>

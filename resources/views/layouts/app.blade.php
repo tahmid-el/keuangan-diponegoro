@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bendahara Dashboard - SRIKAN-Diponegoro</title>
+    <title>Dashboard - SRIKAN-Diponegoro</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -19,6 +19,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --sidebar-bg: #133e87;
             --sidebar-width: 280px;
@@ -65,11 +71,12 @@
         }
 
         .sidebar-header {
-            padding: 20px 15px;
+            padding: 10px 15px;
             display: flex;
-            align-items: center;
+            gap: 20px;
+            align-items: top;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .sidebar-logo {
@@ -77,8 +84,7 @@
             height: 45px;
             background-color: white;
             border-radius: 8px;
-            padding: 2px;
-            margin-right: 12px;
+            padding: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -111,6 +117,8 @@
             margin: 0;
             padding-right: 15px; /* Leave space on right for the rounded corners */
             flex: 1;
+            padding: 0 15px; /* Leave space on right for the rounded corners */
+            flex-grow: 1;
         }
 
         .nav-item {
@@ -403,6 +411,13 @@
 
             @if(auth()->check() && auth()->user()->role == 'kepala_sekolah')
             <li class="nav-item">
+                <a href="{{ route('kepsek.histori.index') ?? '#' }}" 
+                   class="nav-link {{ request()->routeIs('kepsek.histori.*') ? 'active' : '' }}">
+                    <i class="bi bi-clock-history"></i>
+                    Histori
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{{ route('kepsek.laporan') ?? '#' }}" class="nav-link {{ request()->routeIs('kepsek.laporan') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-text"></i>
                     Laporan
@@ -434,7 +449,7 @@
         <header class="top-navbar">
             <div class="navbar-left d-flex align-items-center">
                 <i class="bi bi-list menu-toggle me-3" style="cursor:pointer;" @click="sidebarOpen = !sidebarOpen"></i>
-                <h1 class="role-title m-0 d-none d-md-block" style="color: var(--sidebar-bg);">{{ ucfirst(auth()->user()->role ?? 'Guest') }}</h1>
+                <!-- <h1 class="role-title m-0 d-none d-md-block" style="color: var(--sidebar-bg);">{{ ucfirst(auth()->user()->role ?? 'Guest') }}</h1> -->
             </div>
             
             <div class="navbar-right d-flex align-items-center">
@@ -540,5 +555,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     @stack('scripts')
+    <!-- Script untuk membatasi input Date Range secara dinamis -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startInputs = document.querySelectorAll('input[name="startdate"]');
+            const endInputs = document.querySelectorAll('input[name="enddate"]');
+            
+            startInputs.forEach((startInput, index) => {
+                const endInput = endInputs[index];
+                if (startInput && endInput) {
+                    // Set batasan awal saat dimuat
+                    if (startInput.value) endInput.min = startInput.value;
+                    if (endInput.value) startInput.max = endInput.value;
+                    
+                    // Update batasan saat tanggal dipilih
+                    startInput.addEventListener('change', function() {
+                        endInput.min = this.value;
+                    });
+                    endInput.addEventListener('change', function() {
+                        startInput.max = this.value;
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

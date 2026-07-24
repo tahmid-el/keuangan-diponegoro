@@ -15,7 +15,7 @@ class AuthController extends Controller
             return $this->redirectByRole(Auth::user()->role);
         }
 
-        return view('auth.login-bendahara');
+        return view('auth.login');
     }
 
     // Proses login

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BendaharaController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\KepsekController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TagihanController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\TabunganController;
 use App\Http\Controllers\TahunAjaranController;
 
+use App\Http\Controllers\PemasukanController;
+use App\Http\Controllers\DashboardController;
 
 // ─────────────────────────────────────────────
 // HALAMAN UTAMA → redirect ke login
@@ -30,7 +33,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // DASHBOARD UMUM
 // ─────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 // ─────────────────────────────────────────────
@@ -39,7 +42,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendahara.')->group(function () {
 
     // Histori (Log Aktivitas)
-    Route::get('/histori', [\App\Http\Controllers\HistoryController::class, 'index'])->name('histori.index');
+    Route::get('/histori', [HistoryController::class, 'index'])->name('histori.index');
     
     // Tahun Ajaran
     Route::get('/tahun-ajaran', [TahunAjaranController::class, 'index'])->name('tahun_ajaran.index');
@@ -65,14 +68,14 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
     // Tagihan
     Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
     Route::get('/tagihan/tambah', [TagihanController::class, 'create'])->name('tagihan.create');
-    Route::put('/tagihan/{tagihan}', [TagihanController::class, 'update'])->name('tagihan.update');
-    Route::get('/tagihan/{tagihan}/edit', [TagihanController::class, 'edit'])->name('tagihan.edit');
     Route::post('/tagihan/store', [TagihanController::class, 'store'])->name('tagihan.store');
+    Route::get('/tagihan/{tagihan}/edit', [TagihanController::class, 'edit'])->name('tagihan.edit');
+    Route::put('/tagihan/{tagihan}', [TagihanController::class, 'update'])->name('tagihan.update');
     Route::patch('/tagihan/{tagihan}/arsip', [TagihanController::class, 'arsip'])->name('tagihan.arsip');
 
     // Pembayaran
     Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
-    Route::get('/pembayaran/tmbah', [PembayaranController::class, 'create'])->name('pembayaran.tambah');
+    Route::get('/pembayaran/tambah', [PembayaranController::class, 'create'])->name('pembayaran.tambah');
     Route::post('/pembayaran/cari-siswa', [PembayaranController::class, 'cariSiswa'])->name('pembayaran.cariSiswa');
     Route::post('/pembayaran', [PembayaranController::class, 'store'])->name('pembayaran.simpan');
     Route::get('/pembayaran/{id}/edit', [PembayaranController::class, 'edit'])->name('pembayaran.edit');
@@ -90,20 +93,20 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
     Route::get('/tabungan/{id}',  [TabunganController::class, 'show'])->name('tabungan.show');
 
     // Pengeluaran
-    Route::get('/pengeluaran', [\App\Http\Controllers\PengeluaranController::class, 'index'])->name('pengeluaran.index');
-    Route::get('/pengeluaran/tambah', [\App\Http\Controllers\PengeluaranController::class, 'create'])->name('pengeluaran.create');
-    Route::post('/pengeluaran', [\App\Http\Controllers\PengeluaranController::class, 'store'])->name('pengeluaran.store');
-    Route::get('/pengeluaran/{id}/edit', [\App\Http\Controllers\PengeluaranController::class, 'edit'])->name('pengeluaran.edit');
-    Route::put('/pengeluaran/{id}', [\App\Http\Controllers\PengeluaranController::class, 'update'])->name('pengeluaran.update');
-    Route::delete('/pengeluaran/{id}', [\App\Http\Controllers\PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
+    Route::get('/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran.index');
+    Route::get('/pengeluaran/tambah', [PengeluaranController::class, 'create'])->name('pengeluaran.create');
+    Route::post('/pengeluaran', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
+    Route::get('/pengeluaran/{id}/edit', [PengeluaranController::class, 'edit'])->name('pengeluaran.edit');
+    Route::put('/pengeluaran/{id}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
+    Route::delete('/pengeluaran/{id}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
 
     // Pemasukan
-    Route::get('/pemasukan', [\App\Http\Controllers\PemasukanController::class, 'index'])->name('pemasukan.index');
-    Route::get('/pemasukan/tambah', [\App\Http\Controllers\PemasukanController::class, 'create'])->name('pemasukan.create');
-    Route::post('/pemasukan', [\App\Http\Controllers\PemasukanController::class, 'store'])->name('pemasukan.store');
-    Route::get('/pemasukan/{id}/edit', [\App\Http\Controllers\PemasukanController::class, 'edit'])->name('pemasukan.edit');
-    Route::put('/pemasukan/{id}', [\App\Http\Controllers\PemasukanController::class, 'update'])->name('pemasukan.update');
-    Route::delete('/pemasukan/{id}', [\App\Http\Controllers\PemasukanController::class, 'destroy'])->name('pemasukan.destroy');
+    Route::get('/pemasukan', [PemasukanController::class, 'index'])->name('pemasukan.index');
+    Route::get('/pemasukan/tambah', [PemasukanController::class, 'create'])->name('pemasukan.create');
+    Route::post('/pemasukan', [PemasukanController::class, 'store'])->name('pemasukan.store');
+    Route::get('/pemasukan/{id}/edit', [PemasukanController::class, 'edit'])->name('pemasukan.edit');
+    Route::put('/pemasukan/{id}', [PemasukanController::class, 'update'])->name('pemasukan.update');
+    Route::delete('/pemasukan/{id}', [PemasukanController::class, 'destroy'])->name('pemasukan.destroy');
 
     // Laporan
     Route::get('/laporan',                [BendaharaController::class, 'laporan'])->name('laporan');
@@ -114,6 +117,7 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
 // ─────────────────────────────────────────────
 Route::middleware(['auth', 'role:kepala_sekolah'])->prefix('kepsek')->name('kepsek.')->group(function () {
     Route::get('/laporan',   [KepsekController::class, 'laporan'])->name('laporan');
+    Route::get('/histori',   [HistoryController::class, 'index'])->name('histori.index');
 });
 
 // ─────────────────────────────────────────────
