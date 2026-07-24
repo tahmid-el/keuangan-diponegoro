@@ -1,0 +1,137 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container-fluid py-3" style="background-color:#F5F2DD; min-height:100vh;">
+
+    <!-- Header Atas -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div class="d-flex align-items-center gap-3">
+            <h6 class="fw-bold mb-0">TAGIHAN</h6>
+        </div>
+
+    </div>
+
+    <!-- Form -->
+    <div style="max-width:500px;">
+
+        <form action="{{ route('bendahara.tagihan.store') }}" method="POST">
+            @csrf
+
+            <div class="row g-3">
+
+                <!-- Kelas -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Kelas</label>
+
+                    <select name="kelas_id" class="form-select form-select-sm rounded-pill" required>
+
+                        <option value="">-- Pilih Kelas --</option>
+
+                        @foreach($kelas as $item)
+                            <option value="{{ $item->id }}">
+                                {{ $item->nama_kelas }}
+                            </option>
+                        @endforeach
+
+                    </select>
+                </div>
+
+                <!-- Jenis Tagihan -->
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold"> Kategori Tagihan </label>
+                    <select name="jenis_tagihan_id"
+                            class="form-select form-select-sm rounded-pill"
+                            required>
+
+                        <option value="">-- Pilih --</option>
+
+                        @foreach($jenisTagihan as $jt)
+                            <option value="{{ $jt->id }}">
+                                {{ ucfirst($jt->nama_tagihan) }}
+                            </option>
+                        @endforeach
+
+                    </select>
+                </div>
+
+                <!-- Periode -->
+                <div class="col-md-6">
+
+                    <label class="form-label small fw-semibold">
+                        Tahun Ajaran
+                    </label>
+
+                    <select name="tahun_ajaran_id"
+                            class="form-select form-select-sm rounded-pill"
+                            required>
+
+                        <option value="">-- Pilih --</option>
+
+                        @foreach($tahunAjaran as $ta)
+                            <option value="{{ $ta->id }}">
+                                {{ $ta->nama }}
+                            </option>
+                        @endforeach
+
+                    </select>
+
+                </div>
+
+                <!-- Jenis Pembayaran -->
+                <div class="col-md-6">
+
+                    <label class="form-label small fw-semibold">
+                        Jenis Pembayaran
+                    </label>
+
+                    <select
+                        name="jenis_pembayaran_id"
+                        class="form-select form-select-sm rounded-pill"
+                        required>
+
+                        <option value="">-- Pilih Jenis Pembayaran --</option>
+
+                        @foreach($jenisPembayaran as $jp)
+
+                            <option value="{{ $jp->id }}">
+                                {{   $jp->nama }}
+                            </option>
+
+                        @endforeach
+
+                    </select>
+
+                </div>
+
+                <!-- Nominal -->
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Nominal Tagihan</label>
+                    <input type="number" name="nominal"
+                        class="form-control form-control-sm rounded-pill"
+                        placeholder="Masukan Nominal">
+                </div>
+
+            </div>
+
+            <!-- Tombol -->
+            <div class="mt-4 d-flex gap-3">
+
+                <button type="submit"
+                    class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    Simpan
+                </button>
+
+                <a href="{{ route('bendahara.tagihan.index')}}"
+                    class="btn btn-light border rounded-pill px-4 shadow-sm">
+                    Batal
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+@endsection

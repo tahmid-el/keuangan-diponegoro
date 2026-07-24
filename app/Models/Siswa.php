@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\JenisTagihan;
 
 class Siswa extends Model
 {
@@ -11,8 +12,17 @@ class Siswa extends Model
     protected $fillable = [
         'nis', 'nama_siswa', 'jenis_kelamin', 'orang_tua',
         'tahun_masuk', 'alamat', 'telepon', 'status',
-        'kelas_id', 'tahun_ajaran_id',
+        'jenis_tagihan_id', 'kelas_id', 'tahun_ajaran_id',
     ];
+
+    //Relasi ke tagihan
+    public function jenisTagihan()
+    {
+        return $this->belongsTo(
+            JenisTagihan::class,
+            'jenis_tagihan_id'
+        );
+    }
 
     // Relasi ke kelas
     public function kelas()
@@ -47,7 +57,7 @@ class Siswa extends Model
     // Relasi ke tabungan
     public function tabungan()
     {
-        return $this->hasOne(Tabungan::class);
+        return $this->hasOne(Tabungan::class, 'siswa_id', 'id');
     }
 
     // Helper: label jenis kelamin

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Siswa;
+use App\Models\JenisTagihan;
 use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\Tabungan;
@@ -20,41 +21,49 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         $tahunAjarans = TahunAjaran::orderByDesc('nama')->get();
-        $kelasList    = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
-        $tahunAktif   = TahunAjaran::aktif();
+        $kelasList    = Kelas::orderBy('tingkat')
+                            ->orderBy('nama_kelas')
+                            ->get();
 
-        $query = Siswa::with(['kelas', 'tahunAjaran'])
-                      ->orderBy('nama_siswa');
+        $tahunAktif = TahunAjaran::aktif();
 
-        // Filter tahun ajaran
+        $query = Siswa::with([
+            'kelas',
+            'tahunAjaran',
+            'jenisTagihan'
+        ])->orderBy('nama_siswa');
+
+        // Filter hanya jika user memilih
         if ($request->filled('tahun_ajaran_id')) {
             $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
-        } elseif ($tahunAktif) {
-            $query->where('tahun_ajaran_id', $tahunAktif->id);
         }
 
-        // Filter kelas
         if ($request->filled('kelas_id')) {
             $query->where('kelas_id', $request->kelas_id);
         }
 
-        // Filter status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Pencarian nama / NIS
         if ($request->filled('cari')) {
-            $cari = $request->cari;
-            $query->where(function ($q) use ($cari) {
-                $q->where('nama_siswa', 'like', "%$cari%")
-                  ->orWhere('nis', 'like', "%$cari%");
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_siswa', 'like', "%{$request->cari}%")
+                ->orWhere('nis', 'like', "%{$request->cari}%");
             });
         }
 
         $siswa = $query->paginate(20)->withQueryString();
 
-        return view('bendahara.index_data_siswa', compact('siswa', 'tahunAjarans', 'kelasList', 'tahunAktif'));
+        return view(
+            'bendahara.data_siswa.index',
+            compact(
+                'siswa',
+                'tahunAjarans',
+                'kelasList',
+                'tahunAktif'
+            )
+        );
     }
 
     // ──────────────────────────────────────────────
@@ -62,9 +71,23 @@ class SiswaController extends Controller
     // ──────────────────────────────────────────────
     public function tambahBaru()
     {
-        $kelasList    = Kelas::where('tingkat', 7)->orderBy('nama_kelas')->get();
-        $tahunAktif   = TahunAjaran::aktif();
-        return view('tambah_siswa_baru', compact('kelasList', 'tahunAktif'));
+        $kelas = Kelas::where('tingkat', 7)
+                ->orderBy('nama_kelas')
+                ->get();
+
+        $tahunAktif = TahunAjaran::aktif();
+
+        $jenisTagihan = JenisTagihan::orderBy('nama_tagihan')
+                            ->get();
+
+        return view(
+            'bendahara.data_siswa.tambah_siswa_baru',
+            compact(
+                'kelas',
+                'tahunAktif',
+                'jenisTagihan'
+            )
+        );
     }
 
     // ──────────────────────────────────────────────
@@ -72,69 +95,107 @@ class SiswaController extends Controller
     // ──────────────────────────────────────────────
     public function simpanBaru(Request $request)
     {
+        
         $request->validate([
-            'siswa'                => 'required|array|min:1',
-            'siswa.*.nis'          => 'required|string|distinct',
-            'siswa.*.nama_siswa'   => 'required|string|max:255',
-            'siswa.*.jenis_kelamin'=> 'required|in:L,P',
-            'siswa.*.orang_tua'    => 'nullable|string|max:255',
-            'siswa.*.telepon'      => 'nullable|string|max:20',
-            'siswa.*.alamat'       => 'nullable|string',
-            'kelas_id'             => 'required|exists:kelas,id',
+            'siswa'                  => 'required|array|min:1',
+            'siswa.*.nis'            => 'nullable|string|max:50',
+            'siswa.*.nama_siswa'     => 'nullable|string|max:255',
+            'siswa.*.jenis_kelamin'  => 'nullable|in:Laki-laki,Perempuan',
+            'siswa.*.orang_tua'      => 'nullable|string|max:255',
+            'siswa.*.telepon'        => 'nullable|string|max:20',
+            'siswa.*.alamat'         => 'nullable|string',
+            'siswa.*.jenis_tagihan_id' => 'nullable|exists:jenis_tagihan,id',
+            'kelas_id'               => 'nullable|exists:kelas,id',
         ], [
-            'siswa.required'    => 'Minimal isi 1 data siswa.',
-            'kelas_id.required' => 'Kelas wajib dipilih.',
+            'siswa.required'      => 'Minimal isi 1 data siswa.',
+            'kelas_id.required'   => 'Kelas wajib dipilih.',
         ]);
 
         $tahunAktif = TahunAjaran::aktif();
 
         if (!$tahunAktif) {
-            return back()->withErrors(['error' => 'Tidak ada tahun ajaran aktif. Hubungi administrator.']);
+            return back()->withErrors([
+                'error' => 'Tidak ada tahun ajaran aktif. Hubungi administrator.'
+            ])->withInput();
         }
 
-        dd($request->all());
+        $jumlahDataValid = 0;
 
-        DB::transaction(function () use ($request, $tahunAktif) {
+        DB::transaction(function () use ($request, $tahunAktif, &$jumlahDataValid) {
+
             foreach ($request->siswa as $data) {
-                // Lewati baris kosong
-                if (empty($data['nis']) || empty($data['nama_siswa'])) continue;
 
-                // Cek NIS sudah ada atau belum
-                if (Siswa::where('nis', $data['nis'])->exists()) continue;
-
-                // Simpan data siswa
-                $siswa = Siswa::create([
-                    'nis'            => $data['nis'],
-                    'nama_siswa'     => strtoupper($data['nama_siswa']),
-                    'jenis_kelamin'  => $data['jenis_kelamin'] ?? 'Laki-laki',
-                    'orang_tua'      => $data['orang_tua'] ?? null,
-                    'telepon'        => $data['telepon'] ?? null,
-                    'alamat'         => $data['alamat'] ?? null,
-                    'tahun_masuk'    => date('Y'),
-                    'kelas_id'       => $request->kelas_id,
-                    'tahun_ajaran_id'=> $tahunAktif->id,
-                    'status'         => 'aktif',
-                ]);
-
-                // Buat akun login otomatis untuk siswa
-                $user = User::create([
-                    'name'     => $siswa->nama_siswa,
-                    'email'    => $siswa->nis . '@diponegoro.sch.id',
-                    'password' => Hash::make($siswa->nis),
-                    'role'     => 'siswa',
-                    'siswa_id' => $siswa->id,
-                ]);
-
-                // Buat rekening tabungan otomatis
-                Tabungan::create([
-                    'siswa_id' => $siswa->id,
-                    'saldo'    => 0,
-                ]);
+            // Lewati baris yang benar-benar kosong
+            if (
+                empty($data['nis']) &&
+                empty($data['nama_siswa'])
+            ) {
+                continue;
             }
+
+            // Jika NIS atau Nama belum diisi
+            if (
+                empty($data['nis']) ||
+                empty($data['nama_siswa'])
+            ) {
+                continue;
+            }
+
+            // Kelas wajib dipilih untuk data yang akan disimpan
+            if (empty($data['kelas_id'])) {
+                continue;
+            }
+
+            // Cek NIS duplikat
+            if (Siswa::where('nis', $data['nis'])->exists()) {
+                continue;
+            }
+
+            $jumlahDataValid++;
+
+            $siswa = Siswa::create([
+                'nis'               => $data['nis'],
+                'nama_siswa'        => strtoupper($data['nama_siswa']),
+                'jenis_kelamin'     => $data['jenis_kelamin'] ?? 'Laki-laki',
+                'orang_tua'         => $data['orang_tua'] ?? null,
+                'telepon'           => $data['telepon'] ?? null,
+                'alamat'            => $data['alamat'] ?? null,
+                'tahun_masuk'       => date('Y'),
+                'kelas_id'          => $data['kelas_id'],
+                'tahun_ajaran_id'   => $tahunAktif->id,
+                'jenis_tagihan_id'  => $data['jenis_tagihan_id'] ?? null,
+                'status'            => 'aktif',
+            ]);
+
+            User::create([
+                'name'      => $siswa->nama_siswa,
+                'email'     => $siswa->nis . '@diponegoro.sch.id',
+                'password'  => Hash::make($siswa->nis),
+                'role'      => 'siswa',
+                'siswa_id'  => $siswa->id,
+            ]);
+
+            Tabungan::create([
+                'siswa_id' => $siswa->id,
+                'saldo'    => 0,
+            ]);
+        }
         });
 
-        return redirect()->route('bendahara.siswa.index')
-                         ->with('success', 'Data siswa baru berhasil ditambahkan!');
+        if ($jumlahDataValid === 0) {
+            return back()
+                ->withErrors([
+                    'error' => 'Minimal isi 1 data siswa yang valid.'
+                ])
+                ->withInput();
+        }
+
+        return redirect()
+            ->route('bendahara.siswa.index')
+            ->with(
+                'success',
+                'Data siswa angkatan baru berhasil disimpan'
+            );
     }
 
     // ──────────────────────────────────────────────
@@ -159,55 +220,105 @@ class SiswaController extends Controller
                    ->get()
             : collect();
 
-        return view('tambah_siswa_lama', compact('kelasList', 'tahunAktif', 'tahunAjarans', 'siswaLama', 'tahunLama'));
+        $jenisTagihan = JenisTagihan::orderBy('nama_tagihan')->get();
+
+        return view('bendahara.data_siswa.tambah_siswa_lama', compact('kelasList', 'tahunAktif', 'tahunAjarans', 'siswaLama', 'tahunLama', 'jenisTagihan'));
     }
 
     // ──────────────────────────────────────────────
     // SIMPAN SISWA LAMA (naik kelas)
     // ──────────────────────────────────────────────
-    public function simpanLama(Request $request)
+   public function simpanLama(Request $request)
     {
         $request->validate([
-            'siswa_ids'   => 'required|array|min:1',
-            'siswa_ids.*' => 'exists:siswa,id',
-            'kelas_id'    => 'required|exists:kelas,id',
-        ], [
-            'siswa_ids.required' => 'Pilih minimal 1 siswa.',
-            'kelas_id.required'  => 'Kelas tujuan wajib dipilih.',
+            'siswa' => 'required|array',
         ]);
 
         $tahunAktif = TahunAjaran::aktif();
 
         if (!$tahunAktif) {
-            return back()->withErrors(['error' => 'Tidak ada tahun ajaran aktif.']);
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'error' => 'Tidak ada tahun ajaran aktif.'
+                ]);
         }
 
         DB::transaction(function () use ($request, $tahunAktif) {
-            foreach ($request->siswa_ids as $siswaId) {
-                $siswa = Siswa::find($siswaId);
-                if (!$siswa) continue;
 
-                // Update kelas dan tahun ajaran
-                $siswa->update([
-                    'kelas_id'        => $request->kelas_id,
-                    'tahun_ajaran_id' => $tahunAktif->id,
-                    'status'          => 'aktif',
+            foreach ($request->siswa as $item) {
+
+                // Lewati baris yang kosong
+                if (
+                    empty($item['nis']) &&
+                    empty($item['nama_siswa'])
+                ) {
+                    continue;
+                }
+
+                // Cek NIS tidak boleh sama
+                if (Siswa::where('nis', $item['nis'])->exists()) {
+                    continue;
+                }
+
+                Siswa::create([
+                    'nis'              => $item['nis'],
+                    'nama_siswa'       => $item['nama_siswa'],
+                    'kelas_id'         => $item['kelas_id'],
+                    'jenis_kelamin'    => $item['jenis_kelamin'],
+                    'orang_tua'        => $item['orang_tua'],
+                    'telepon'          => $item['telepon'],
+                    'alamat'           => $item['alamat'],
+                    'status'           => $item['status'] ?? 'aktif',
+                    'tahun_ajaran_id'  => $tahunAktif->id,
+                    'tahun_masuk' => now()->year, 
+                    'jenis_tagihan_id'  => $item['jenis_tagihan_id'] ?? null,
                 ]);
+
             }
+
         });
 
-        return redirect()->route('bendahara.siswa.index')
-                         ->with('success', 'Data siswa lama berhasil dipindahkan ke tahun ajaran baru!');
+        return redirect()
+            ->route('bendahara.siswa.index')
+            ->with('success', 'Data siswa angkatan lama berhasil ditambahkan.');
     }
 
+    // ──────────────────────────────────────────────
+    // NAIKKAN KELAS SISWA 
+    // ──────────────────────────────────────────────
+    public function naikKelas(Request $request)
+    {
+        $request->validate([
+            'kelas_tujuan' => 'required|exists:kelas,id',
+            'siswa_ids'    => 'required|array|min:1',
+            'siswa_ids.*'  => 'exists:siswa,id',
+        ], [
+            'siswa_ids.required' => 'Pilih minimal satu siswa.',
+        ]);
+
+        DB::transaction(function () use ($request) {
+
+            Siswa::whereIn('id', $request->siswa_ids)
+                ->update([
+                    'kelas_id' => $request->kelas_tujuan,
+                ]);
+
+        });
+
+        return redirect()
+            ->route('bendahara.siswa.index')
+            ->with('success', 'Kenaikan kelas berhasil diproses.');
+    }
     // ──────────────────────────────────────────────
     // FORM EDIT SISWA
     // ──────────────────────────────────────────────
     public function edit(Siswa $siswa)
     {
         $kelasList    = Kelas::orderBy('tingkat')->orderBy('nama_kelas')->get();
+        $jenisTagihan = JenisTagihan::orderBy('nama_tagihan')->get();
         $tahunAjarans = TahunAjaran::orderByDesc('nama')->get();
-        return view('edit_data_siswa', compact('siswa', 'kelasList', 'tahunAjarans'));
+        return view('bendahara.data_siswa.edit', compact('siswa', 'kelasList', 'jenisTagihan', 'tahunAjarans'));
     }
 
     // ──────────────────────────────────────────────
@@ -223,7 +334,7 @@ class SiswaController extends Controller
             'telepon'         => 'nullable|string|max:20',
             'alamat'          => 'nullable|string',
             'kelas_id'        => 'required|exists:kelas,id',
-            'tahun_ajaran_id' => 'required|exists:tahun_ajarans,id',
+            'jenis_tagihan_id' => 'nullable|exists:jenis_tagihan,id',
             'status'          => 'required|in:aktif,lulus,pindah,nonaktif',
         ]);
 
@@ -231,11 +342,11 @@ class SiswaController extends Controller
             'nis'             => $request->nis,
             'nama_siswa'      => strtoupper($request->nama_siswa),
             'jenis_kelamin'   => $request->jenis_kelamin,
-            'orang_tua'       => $request->nama_ortu,
+            'orang_tua'       => $request->orang_tua,
             'telepon'         => $request->telepon,
             'alamat'          => $request->alamat,
             'kelas_id'        => $request->kelas_id,
-            'tahun_ajaran_id' => $request->tahun_ajaran_id,
+            'jenis_tagihan_id'  => $request->jenis_tagihan_id,
             'status'          => $request->status,
         ]);
 
@@ -254,28 +365,18 @@ class SiswaController extends Controller
     public function arsip(Request $request, Siswa $siswa)
     {
         $request->validate([
-            'status' => 'required|in:lulus,pindah,nonaktif',
+            'status' => 'required|in:lulus,pindah,non-aktif',
         ]);
 
-        $siswa->update(['status' => $request->status]);
+        $siswa->update([
+            'status' => $request->status
+        ]);
 
-        return redirect()->route('bendahara.siswa.index')
-                         ->with('success', 'Status siswa berhasil diperbarui!');
-    }
-
-    // ──────────────────────────────────────────────
-    // HAPUS SISWA
-    // ──────────────────────────────────────────────
-    public function hapus(Siswa $siswa)
-    {
-        // Hapus akun user siswa juga
-        if ($siswa->user) {
-            $siswa->user->delete();
-        }
-
-        $siswa->delete();
-
-        return redirect()->route('bendahara.siswa.index')
-                         ->with('success', 'Data siswa berhasil dihapus!');
+        return redirect()
+                ->route('bendahara.data_siswa.index')
+                ->with(
+                    'success',
+                    'Status siswa berhasil diperbarui!'
+                );
     }
 }
