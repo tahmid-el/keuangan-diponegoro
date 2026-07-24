@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pengeluaran extends Model
 {
-    protected $fillable = ['tanggal', 'keterangan', 'nominal', 'kategori_id', 'bukti', 'deskripsi', 'user_id'];
+    protected $fillable = ['tanggal', 'keterangan', 'nominal', 'kategori_id', 'bukti', 'user_id'];
 
     public function user()
     {

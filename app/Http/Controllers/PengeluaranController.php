@@ -43,29 +43,45 @@ class PengeluaranController extends Controller
 
     public function store(Request $request)
     {
-        if ($request->has('nominal')) {
-            $request->merge(['nominal' => str_replace('.', '', $request->nominal)]);
+        if ($request->has('nominal') && is_array($request->nominal)) {
+            $nominals = [];
+            foreach ($request->nominal as $n) {
+                $nominals[] = str_replace('.', '', $n);
+            }
+            $request->merge(['nominal' => $nominals]);
         }
 
         $request->validate([
             'tanggal' => 'required|date',
-            'nominal' => 'required|numeric|min:0',
-            'keterangan' => 'required|string|max:255',
             'kategori_id' => 'nullable',
             'kategori_baru' => 'required_without:kategori_id|nullable|string|max:255',
-            'deskripsi' => 'nullable|string',
-            'bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'keterangan' => 'required|array|min:1',
+            'keterangan.*' => 'required|string|max:255',
+            'nominal' => 'required|array|min:1',
+            'nominal.*' => 'required|numeric|min:0',
+            'bukti' => 'nullable|array',
+            'bukti.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $data = $request->except('bukti', 'kategori_baru');
-        $data['kategori_id'] = $this->resolveKategoriId($request);
-        $data['user_id'] = Auth::id();
+        $kategoriId = $this->resolveKategoriId($request);
+        $userId = Auth::id();
 
-        if ($request->hasFile('bukti')) {
-            $data['bukti'] = $request->file('bukti')->store('bukti/pengeluaran', 'public');
+        foreach ($request->keterangan as $index => $ket) {
+            $data = [
+                'tanggal' => $request->tanggal,
+                'kategori_id' => $kategoriId,
+                'keterangan' => $ket,
+                'nominal' => $request->nominal[$index],
+                'user_id' => $userId,
+            ];
+
+            if ($request->hasFile("bukti.$index")) {
+                $data['bukti'] = $request->file("bukti.$index")->store('bukti/pengeluaran', 'public');
+            }
+
+            Pengeluaran::create($data);
         }
 
-        Pengeluaran::create($data);
         return redirect()->route('bendahara.pengeluaran.index')->with('success', 'Data Pengeluaran berhasil ditambahkan.');
     }
 
@@ -89,7 +105,6 @@ class PengeluaranController extends Controller
             'keterangan' => 'required|string|max:255',
             'kategori_id' => 'nullable',
             'kategori_baru' => 'required_without:kategori_id|nullable|string|max:255',
-            'deskripsi' => 'nullable|string',
             'bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 

@@ -107,9 +107,6 @@
                     <td>{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</td>
                     <td>
                         <span class="fw-medium text-dark">{{ $p->keterangan }}</span>
-                        @if($p->deskripsi)
-                        <div class="text-muted small" style="font-size: 11px;">{{ Str::limit($p->deskripsi, 50) }}</div>
-                        @endif
                     </td>
                     <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ $p->kategori->nama ?? '-' }}</span></td>
                     <td class="fw-bold text-success">Rp {{ number_format($p->nominal, 0, ',', '.') }}</td>
