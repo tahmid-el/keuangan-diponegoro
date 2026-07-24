@@ -89,6 +89,7 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
 
     // Laporan
     Route::get('/laporan',                [BendaharaController::class, 'laporan'])->name('laporan');
+    Route::get('/laporan/print',          [BendaharaController::class, 'printLaporan'])->name('laporan.print');
 });
 
 // ─────────────────────────────────────────────
@@ -96,6 +97,7 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
 // ─────────────────────────────────────────────
 Route::middleware(['auth', 'role:kepala_sekolah'])->prefix('kepsek')->name('kepsek.')->group(function () {
     Route::get('/laporan',   [KepsekController::class, 'laporan'])->name('laporan');
+    Route::get('/laporan/print', [KepsekController::class, 'printLaporan'])->name('laporan.print');
     Route::get('/histori',   [HistoryController::class, 'index'])->name('histori.index');
 });
 

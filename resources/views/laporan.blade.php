@@ -136,25 +136,37 @@
         <button onclick="exportToExcel()" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #10b981; border-color: #10b981; border-radius: 8px;">
             <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
         </button>
-        <button onclick="window.print()" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #3b82f6; border-color: #3b82f6; border-radius: 8px;">
+        <a href="{{ url()->current() . '/print?' . http_build_query(request()->query()) }}" target="_blank" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #3b82f6; border-color: #3b82f6; border-radius: 8px; text-decoration: none;">
             <i class="bi bi-printer me-1"></i> Cetak Laporan
-        </button>
+        </a>
     </div>
 </div>
 
-<div class="print-area" style="background: none;">
-    <!-- Header Print (Corporate Style) -->
+<div class="print-area" style="background: none !important;">
+    <!-- Header Print (Kop Surat) -->
     <div class="d-none d-print-block mb-4">
-        <h2 class="fw-bold mb-3 text-uppercase" style="color: #334155; font-size: 16pt;">Laporan Keuangan </h2>
-        <div class="print-header-boxes">
-            <div class="print-box">
-                <div class="print-box-title">Periode</div>
-                <div class="print-box-value">{{ $months[$bulan] }} {{ $tahun }}</div>
-            </div>
-            <div class="print-box">
-                <div class="print-box-title">Dicetak Oleh</div>
-                <div class="print-box-value">{{ Auth::user()->name }}</div>
-            </div>
+        <table style="width: 100%; border-bottom: 3px solid #000; margin-bottom: 2px;">
+            <tr>
+                <td style="width: 15%; text-align: center; padding-bottom: 10px;">
+                    <div style="width: 80px; height: 80px; border: 1px dashed #ccc; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: #999; margin: auto;">
+                        <img src="{{ asset('images/dipo.png') }}" alt="Logo Sekolah" onerror="this.src='https://ui-avatars.com/api/?name=MTs+D&background=133e87&color=fff&size=128'">
+                    </div>
+                </td>
+                <td style="width: 70%; text-align: center; padding-bottom: 10px; line-height: 1.3;">
+                    <div style="font-size: 14pt; font-weight: bold;">YAYASAN PENDIDIKAN DAN SOSIAL ISLAM DIPONEGORO</div>
+                    <div style="font-size: 16pt; font-weight: bold;">MADRASAH TSANAWIYAH (MTsS) DIPONEGORO</div>
+                    <div style="font-size: 10pt;">NPSN : 20581699 | NSM : 121235100014</div>
+                    <div style="font-size: 10pt;">Jl. Diponegoro No. 01, Tegalsari, Banyuwangi 68491</div>
+                </td>
+                <td style="width: 15%; text-align: center; padding-bottom: 10px;">
+                </td>
+            </tr>
+        </table>
+        <div style="border-bottom: 1px solid #000; margin-bottom: 20px;"></div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 14pt; font-weight: bold;">LAPORAN</div>
+            <div style="font-size: 11pt;">Periode: {{ $months[$bulan] }} {{ $tahun }}</div>
         </div>
     </div>
 
@@ -254,20 +266,55 @@ async function exportToExcel() {
     var workbook = new ExcelJS.Workbook();
     var worksheet = workbook.addWorksheet('Laporan Keuangan');
     
-    // 1. Judul Laporan
+    // 1. Kop Surat
     worksheet.mergeCells('A1:G1');
-    var titleCell = worksheet.getCell('A1');
-    titleCell.value = 'LAPORAN KEUANGAN';
-    titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FF334155' } };
+    worksheet.getCell('A1').value = 'YAYASAN PENDIDIKAN DAN SOSIAL ISLAM DIPONEGORO';
+    worksheet.getCell('A1').font = { name: 'Arial', size: 12, bold: true };
+    worksheet.getCell('A1').alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A2:G2');
+    worksheet.getCell('A2').value = 'MADRASAH TSANAWIYAH (MTsS) DIPONEGORO';
+    worksheet.getCell('A2').font = { name: 'Arial', size: 14, bold: true };
+    worksheet.getCell('A2').alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A3:G3');
+    worksheet.getCell('A3').value = 'TERAKREDITASI "A"';
+    worksheet.getCell('A3').font = { name: 'Arial', size: 11, bold: true };
+    worksheet.getCell('A3').alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A4:G4');
+    worksheet.getCell('A4').value = 'NPSN : 20581699 | NSM : 121235100014';
+    worksheet.getCell('A4').font = { name: 'Arial', size: 10 };
+    worksheet.getCell('A4').alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A5:G5');
+    worksheet.getCell('A5').value = 'Jl. Diponegoro No. 01, Tegalsari, Banyuwangi 68491';
+    worksheet.getCell('A5').font = { name: 'Arial', size: 10 };
+    worksheet.getCell('A5').alignment = { horizontal: 'center' };
+
+    worksheet.mergeCells('A6:G6');
+    worksheet.getCell('A6').value = 'Telp. : .......................... | Email : ........................................';
+    worksheet.getCell('A6').font = { name: 'Arial', size: 10 };
+    worksheet.getCell('A6').alignment = { horizontal: 'center' };
+
+    // Garis Bawah Kop Surat (Border)
+    worksheet.mergeCells('A7:G7');
+    worksheet.getCell('A7').border = { bottom: { style: 'double' } };
+
+    // 2. Judul Laporan
+    worksheet.mergeCells('A9:G9');
+    var titleCell = worksheet.getCell('A9');
+    titleCell.value = 'LAPORAN';
+    titleCell.font = { name: 'Arial', size: 14, bold: true };
+    titleCell.alignment = { horizontal: 'center' };
     
-    // 2. Info Periode & Instansi (Corporate Header)
-    worksheet.mergeCells('A3:B3');
-    worksheet.getCell('A3').value = 'PERIODE: ' + period.toUpperCase();
-    worksheet.getCell('A3').font = { bold: true };
+    worksheet.mergeCells('A10:G10');
+    var periodCell = worksheet.getCell('A10');
+    periodCell.value = 'Periode: ' + period;
+    periodCell.font = { name: 'Arial', size: 11 };
+    periodCell.alignment = { horizontal: 'center' };
     
-    worksheet.mergeCells('A4:B4');
-    worksheet.getCell('A4').value = 'DICETAK OLEH: ' + '{{ strtoupper(Auth::user()->name) }}';
-    worksheet.getCell('A4').font = { bold: true };
+    worksheet.getRow(11).values = []; // Empty row as spacing
     
     // 3. Header Tabel (Gaya Navy Blue)
     var headerRow = worksheet.addRow([
