@@ -12,17 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tagihans', function (Blueprint $table) {
-            $table->boolean('diarsipkan')->default(0);
+            if (!Schema::hasColumn('tagihans', 'diarsipkan')) {
+                $table->boolean('diarsipkan')->default(false);
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('tagihans', function (Blueprint $table) {
-            $table->dropColumn('diarsipkan');
+            if (Schema::hasColumn('tagihans', 'diarsipkan')) {
+                $table->dropColumn('diarsipkan');
+            }
         });
     }
 };

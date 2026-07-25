@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::table('siswa', function (Blueprint $table) {
 
             if (!Schema::hasColumn('siswa', 'jenis_kelamin')) {
-                $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])
-                    ->default('Laki-laki')
+                $table->enum('jenis_kelamin', ['L', 'Perempuan'])
+                    ->default('L')
                     ->after('telepon');
             }
 
-            if (!Schema::hasColumn('siswa', 'nama_ortu')) {
-                $table->string('nama_ortu')
+            if (!Schema::hasColumn('siswa', 'orang_tua')) {
+                $table->string('orang_tua')
                     ->nullable()
                     ->after('jenis_kelamin');
             }
@@ -29,8 +29,8 @@ return new class extends Migration
     {
         Schema::table('siswa', function (Blueprint $table) {
 
-            if (Schema::hasColumn('siswa', 'nama_ortu')) {
-                $table->dropColumn('nama_ortu');
+            if (Schema::hasColumn('siswa', 'orang_tua')) {
+                $table->dropColumn('orang_tua');
             }
 
             if (Schema::hasColumn('siswa', 'jenis_kelamin')) {

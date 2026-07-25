@@ -12,17 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('siswa', function (Blueprint $table) {
-            //
+            $table->foreignId('jenis_tagihan_id')
+                ->after('status')
+                ->nullable()
+                ->constrained('jenis_tagihan')
+                ->nullOnDelete();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('siswa', function (Blueprint $table) {
-            //
+            $table->dropForeign(['jenis_tagihan_id']);
+            $table->dropColumn('jenis_tagihan_id');
         });
     }
 };

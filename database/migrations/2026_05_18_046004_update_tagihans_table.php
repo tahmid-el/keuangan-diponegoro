@@ -8,24 +8,32 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tagihans', function (Blueprint $table) {
-            $table->foreignId('siswa_id')->after('id')->constrained('siswa')->cascadeOnDelete();
-            $table->foreignId('jenis_pembayaran_id')->after('siswa_id')->constrained('jenis_pembayarans')->cascadeOnDelete();
-            $table->enum('kategori', [
-                'normal','subsidi_kurang_mampu','subsidi_saudara',
-                'subsidi_yatim','subsidi_keluarga_guru','subsidi_prestasi',
-            ])->default('normal')->after('jenis_pembayaran_id');
-            $table->unsignedBigInteger('nominal_subsidi')->default(0)->after('kategori');
-            $table->enum('status', ['belum_lunas','cicilan','lunas'])->default('belum_lunas')->after('nominal_subsidi');
-            $table->year('periode')->after('status');
+            if (!Schema::hasColumn('tagihans', 'kelas_id')) {
+                $table->foreignId('kelas_id')
+                    ->after('id')
+                    ->constrained('kelas')
+                    ->cascadeOnDelete();
+            }
+            if (!Schema::hasColumn('tagihans', 'jenis_tagihan_id')) {
+                $table->foreignId('jenis_tagihan_id')
+                    ->after('tahun_ajaran_id')
+                    ->constrained('jenis_tagihan')
+                    ->cascadeOnDelete();
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('tagihans', function (Blueprint $table) {
-            $table->dropForeign(['siswa_id']);
-            $table->dropForeign(['jenis_pembayaran_id']);
-            $table->dropColumn(['siswa_id','jenis_pembayaran_id','kategori','nominal_subsidi','status','periode']);
+            if (Schema::hasColumn('tagihans', 'kelas_id')) {
+                $table->dropForeign(['kelas_id']);
+                $table->dropColumn('kelas_id');
+            }
+            if (Schema::hasColumn('tagihans', 'jenis_tagihan_id')) {
+                $table->dropForeign(['jenis_tagihan_id']);
+                $table->dropColumn('jenis_tagihan_id');
+            }
         });
     }
 };

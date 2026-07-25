@@ -9,49 +9,35 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
+    public function up(): void
     {
         Schema::create('tagihans', function (Blueprint $table) {
-
             $table->id();
 
-            // Nama tagihan
-            $table->string('nama_tagihan');
+            $table->foreignId('kelas_id')
+                ->constrained('kelas')
+                ->cascadeOnDelete();
 
-            // Umum / Khusus
-            $table->enum('jenis', [
-                'Umum',
-                'Khusus'
-            ]);
+            $table->foreignId('jenis_pembayaran_id')
+                ->constrained('jenis_pembayarans')
+                ->cascadeOnDelete();
 
-            // Nominal tagihan
-            $table->bigInteger('nominal');
-
-            // Semester
-            $table->enum('semester', [
-                'Ganjil',
-                'Genap'
-            ]);
-
-            // Tahun ajaran
             $table->foreignId('tahun_ajaran_id')
                 ->constrained('tahun_ajarans')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
+                ->cascadeOnDelete();
 
-            // Jenis subsidi (khusus)
-            $table->string('kategori_subsidi')->nullable();
+            $table->foreignId('jenis_tagihan_id')
+                ->constrained('jenis_tagihan')
+                ->cascadeOnDelete();
 
-            // Status arsip
-            $table->boolean('is_arsip')->default(false);
+            $table->unsignedBigInteger('nominal');
+
+            $table->boolean('diarsipkan')->default(false);
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('tagihans');
