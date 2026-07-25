@@ -9,8 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('siswa', function (Blueprint $table) {
-            $table->enum('jenis_kelamin', ['L', 'P'])
-                ->default('L')
+            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])
                 ->after('telepon');
 
             $table->string('orang_tua')
