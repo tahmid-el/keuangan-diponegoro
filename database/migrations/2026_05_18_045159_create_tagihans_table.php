@@ -26,10 +26,6 @@ return new class extends Migration
                 ->constrained('tahun_ajarans')
                 ->cascadeOnDelete();
 
-            $table->foreignId('jenis_tagihan_id')
-                ->constrained('jenis_tagihan')
-                ->cascadeOnDelete();
-
             $table->unsignedBigInteger('nominal');
 
             $table->boolean('diarsipkan')->default(false);
