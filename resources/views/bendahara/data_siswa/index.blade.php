@@ -1,124 +1,120 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-3" style="background-color:#F5F2DD; min-height:100vh;">
-
-    {{-- Notifikasi sukses/error --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mx-3" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div class="w-full mb-4 d-flex flex-wrap align-items-center justify-between">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Data Siswa</h2>
+            <p class="text-muted mb-0">Kelola data siswa, tahun ajaran, dan status</p>
         </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
-            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+       <div class="dropdown ms-2" id="tambahSiswaDropdown"
+            style="position: relative; display: inline-block;">
+
+            <button class="btn btn-custom-primary dropdown-toggle shadow-sm text-nowrap"
+                    type="button"
+                    onclick="toggleDropdown()"
+                    style="padding: 0.5rem 1.25rem;">
+                <i class="bi bi-plus-circle me-1"></i> Tambah
+            </button>
+
+            <ul id="tambahMenu"
+                class="dropdown-menu border-0 shadow-sm rounded-3"
+                style="
+                    display:none;
+                    position:absolute;
+                    top:calc(100% + 2px);
+                    right:0;
+                    min-width:100%;
+                    z-index:1000;
+                ">
+                <li><a class="dropdown-item py-2" href="{{ route('bendahara.siswa.tambah-baru') }}">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>Angkatan Baru
+                </a></li>
+                <li><a class="dropdown-item py-2" href="{{ route('bendahara.siswa.tambah-lama') }}">
+                    <i class="bi bi-people me-2 text-success"></i>Angkatan Lama (Naik Kelas)
+                </a></li>
+            </ul>
         </div>
-    @endif
-
-    {{-- Filter & Tombol Tambah --}}
-    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 px-3">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h6 class="fw-bold mb-0">Data Siswa</h6>
-
-            {{-- Form Filter --}}
-            <form method="GET" action="{{ route('bendahara.siswa.index') }}" class="d-flex align-items-center gap-2 flex-wrap">
-
-                {{-- Filter Tahun Ajaran --}}
-                <select name="tahun_ajaran_id" class="form-select form-select-sm" style="width:120px;" onchange="this.form.submit()">
+        <script>
+        function toggleDropdown() {
+            var menu = document.getElementById('tambahMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        document.addEventListener('click', function(e) {
+            var container = document.getElementById('tambahSiswaDropdown');
+            if (!container.contains(e.target)) {
+                document.getElementById('tambahMenu').style.display = 'none';
+            }
+        });
+        </script>
+    </div>
+    
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <form method="GET" action="{{ route('bendahara.siswa.index') }}" class="d-flex flex-wrap align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-2 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
+                <select name="tahun_ajaran_id" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" onchange="this.form.submit()">
                     <option value="">Semua Tahun</option>
                     @foreach($tahunAjarans as $ta)
-                        <option value="{{ $ta->id }}" {{ request('tahun_ajaran_id', $tahunAktif?->id) == $ta->id ? 'selected' : '' }}>
-                            {{ $ta->nama }}
-                        </option>
+                        <option value="{{ $ta->id }}" {{ request('tahun_ajaran_id', $tahunAktif?->id) == $ta->id ? 'selected' : '' }}>{{ $ta->nama }}</option>
                     @endforeach
                 </select>
-
-                {{-- Filter Kelas --}}
-                <select name="kelas_id" class="form-select form-select-sm" style="width:110px;" onchange="this.form.submit()">
+                <div class="vr mx-1"></div>
+                <select name="kelas_id" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" onchange="this.form.submit()">
                     <option value="">Semua Kelas</option>
                     @foreach($kelasList as $kelas)
-                        <option value="{{ $kelas->id }}" {{ request('kelas_id') == $kelas->id ? 'selected' : '' }}>
-                            {{ $kelas->nama_kelas }}
-                        </option>
+                        <option value="{{ $kelas->id }}" {{ request('kelas_id') == $kelas->id ? 'selected' : '' }}>{{ $kelas->nama_kelas }}</option>
                     @endforeach
                 </select>
-
-                {{-- Filter Status --}}
-                <select name="status" class="form-select form-select-sm" style="width:110px;" onchange="this.form.submit()">
+                <div class="vr mx-1"></div>
+                <select name="status" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
-                    <option value="aktif"    {{ request('status') == 'aktif'    ? 'selected' : '' }}>Aktif</option>
-                    <option value="lulus"    {{ request('status') == 'lulus'    ? 'selected' : '' }}>Lulus</option>
-                    <option value="pindah"   {{ request('status') == 'pindah'   ? 'selected' : '' }}>Pindah</option>
+                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
+                    <option value="pindah" {{ request('status') == 'pindah' ? 'selected' : '' }}>Pindah</option>
                     <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                 </select>
-
-                {{-- Pencarian --}}
-                <input type="text" name="cari" class="form-control form-control-sm"
-                       placeholder="Cari nama / NIS..." style="width:180px;"
-                       value="{{ request('cari') }}">
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="bi bi-search"></i>
-                </button>
-                <a href="{{ route('bendahara.siswa.index') }}" class="btn btn-secondary btn-sm">Reset</a>
-            </form>
-
-            {{-- Tombol Tambah --}}
-            <div>
-                <div>
-                    <button class="btn btn-primary dropdown-toggle"
-                            type="button">
-                        Tambah
-                    </button>
-
-                    <ul>
-                        <li>
-                            <a class="dropdown-item"
-                            href="{{ route('bendahara.siswa.tambah-baru') }}">
-                                <i class="bi bi-person-plus me-2"></i>
-                                Angkatan Baru
-                            </a>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item"
-                            href="{{ route('bendahara.siswa.tambah-lama') }}">
-                                <i class="bi bi-people me-2"></i>
-                                Angkatan Lama (Naik Kelas)
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                <div class="vr mx-1"></div>
+                <input type="text" name="cari" class="form-control border-0 bg-transparent p-1" placeholder="Cari nama / NIS..." style="max-width: 150px;" value="{{ request('cari') }}">
             </div>
-        </div>
-
-        {{-- Info jumlah --}}
-        <small class="text-muted">Total: {{ $siswa->total() }} siswa</small>
+            
+            <button type="submit" class="btn btn-primary text-white fw-medium rounded-pill shadow-sm px-3 d-flex align-items-center gap-2" style="height: 40px; border: 1px solid rgba(255,255,255,0.4);">
+                <i class="bi bi-search"></i>
+            </button>
+            @if(request('cari') || request('kelas_id') || request('status') || request('tahun_ajaran_id'))
+                <a href="{{ route('bendahara.siswa.index') }}" class="btn btn-danger text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center transition" style="width:40px; height:40px; border: 1px solid rgba(255,255,255,0.4);" title="Reset Filter">
+                    <i class="bi bi-x-lg" style="font-size: 14px; font-weight: bold;"></i>
+                </a>
+            @endif
+        </form>
     </div>
+</div>
+
+<div class="mb-3">
+    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill">Total: {{ $siswa->total() }} siswa</span>
+</div>
 
     {{-- Tabel --}}
-    <div>
-        <div class="card border-0 shadow-sm rounded-3 mx-3">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0 text-center" style="font-size:12px;">
-                        <thead style="background:#F8F8F8;">
-                            <tr>
-                                <th width="40"><input type="checkbox" id="checkAll"></th>
-                                <th>No.</th>
-                                <th>NIS</th>
-                                <th>Nama Siswa</th>
-                                <th>Kelas</th>
-                                <th>Jenis Kelamin</th>
-                                <th>Orang Tua</th>
-                                <th>Telepon</th>
-                                <th>Jenis Tagihan</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-0 rounded-start" width="40"><input type="checkbox" id="checkAll" class="form-check-input"></th>
+                        <th class="border-0">No.</th>
+                        <th class="border-0">NIS</th>
+                        <th class="border-0 text-start">Nama Siswa</th>
+                        <th class="border-0">Kelas</th>
+                        <th class="border-0">Jenis Kelamin</th>
+                        <th class="border-0">Telepon</th>
+                        <th class="border-0">Status</th>
+                        <th class="border-0 rounded-end">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
                             @forelse($siswa as $index => $s)
                             <tr>
                                 <td><input type="checkbox" class="check-item" name="siswa_ids[]" value="{{ $s->id }}"></td>
@@ -127,9 +123,7 @@
                                 <td class="text-start">{{ $s->nama_siswa }}</td>
                                 <td>{{ $s->kelas?->nama_kelas ?? '-' }}</td>
                                 <td>{{ $s->jenis_kelamin ?? '-'}}</td>
-                                <td class="text-start">{{ $s->orang_tua ?? '-' }}</td>
                                 <td>{{ $s->telepon ?? '-' }}</td>
-                                <td>{{ $s->jenisTagihan?->nama_tagihan ?? '-' }}</td>
                                 <td>
 
                                 @if($s->status == 'aktif')
@@ -195,6 +189,7 @@
                     {{ $siswa->links() }}
                 </div>
                 @endif
+    </div> <!-- /glass-card -->
 
                     <div class="card shadow"
                         style="

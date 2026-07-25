@@ -233,7 +233,15 @@ class PembayaranController extends Controller
             abort(404, 'Data pembayaran tidak ditemukan.');
         }
 
-        return view('bendahara.pembayaran.edit', compact('pembayaran'));
+        $tahunAjaran = DB::table('tahun_ajarans')
+            ->orderByDesc('id')
+            ->get();
+
+        $jenisPembayaran = DB::table('jenis_pembayarans')
+            ->orderBy('nama')
+            ->get();
+
+        return view('bendahara.pembayaran.edit', compact('pembayaran', 'tahunAjaran', 'jenisPembayaran'));
     }
 
     /**

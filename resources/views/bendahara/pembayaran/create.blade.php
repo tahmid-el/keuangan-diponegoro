@@ -1,9 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4" style="background-color:#9DB2D8; min-height:100vh;">
+<div class="d-flex align-items-center gap-3 mb-4">
+    <h5 class="fw-bold mb-0">Tambah Pembayaran</h5>
+    <a href="{{ route('bendahara.pembayaran.index') }}" class="btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Kembali
+    </a>
+</div>
 
-    <div class="mx-auto" style="max-width:750px;">
+<div class="glass-card p-4">
+
+    <div class="mx-auto" style="max-width:900px;">
 
         <form action="{{ route('bendahara.pembayaran.simpan') }}" method="POST">
             @csrf
@@ -19,7 +26,7 @@
                     <select
                         name="siswa_id"
                         id="siswa_id"
-                        class="form-select rounded-4"
+                        class="form-select"
                         required>
 
                         <option value="">
@@ -48,7 +55,7 @@
                     <input
                         type="text"
                         name="no_kwitansi"
-                        class="form-control rounded-4"
+                        class="form-control"
                         placeholder="Masukkan nomor kwitansi"
                         required>
 
@@ -64,7 +71,7 @@
                     <input
                         type="text"
                         id="nama_siswa"
-                        class="form-control rounded-4"
+                        class="form-control"
                         readonly>
 
                 </div>
@@ -79,7 +86,7 @@
                     <input
                         type="date"
                         name="tanggal_bayar"
-                        class="form-control rounded-4"
+                        class="form-control"
                         value="{{ date('Y-m-d') }}"
                         required>
 
@@ -95,7 +102,7 @@
                     <select
                         name="tahun_ajaran_id"
                         id="tahun_ajaran_id"
-                        class="form-select rounded-4"
+                        class="form-select"
                         required>
 
                         <option value="">Pilih Periode</option>
@@ -126,7 +133,7 @@
                     <select
                         name="jenis_pembayaran_id"
                         id="jenis_pembayaran_id"
-                        class="form-select rounded-4"
+                        class="form-select"
                         required>
 
                         <option value="">
@@ -155,7 +162,7 @@
                     <input
                         type="number"
                         name="nominal"
-                        class="form-control rounded-4"
+                        class="form-control"
                         placeholder="Masukkan nominal pembayaran"
                         required>
 
@@ -167,7 +174,7 @@
 
                 <button
                     type="submit"
-                    class="btn btn-success px-5 rounded-4">
+                    class="btn btn-custom-primary px-5">
 
                     Simpan
 
@@ -175,7 +182,7 @@
 
                 <a
                     href="{{ route('bendahara.pembayaran.index') }}"
-                    class="btn btn-secondary px-5 rounded-4">
+                    class="btn btn-secondary px-5">
 
                     Batal
 
@@ -208,13 +215,6 @@ document.getElementById('siswa_id').addEventListener('change', function(){
 });
 
 
-document.getElementById('tahun_ajaran_id').addEventListener('change',function(){
-
-    let nama=this.options[this.selectedIndex].dataset.nama;
-
-    document.getElementById('periode').value=nama;
-
-});
 
 </script>
 

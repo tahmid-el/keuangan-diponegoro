@@ -321,6 +321,39 @@
                 width: 200px;
             }
         }
+
+        /* Global UI styles for consistent cards and buttons */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+        .btn-custom-primary {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: white;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0.5rem 1.25rem;
+        }
+        .btn-custom-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            color: white;
+        }
+        .btn-action {
+            border-radius: 8px;
+            padding: 0.375rem 0.75rem;
+            transition: all 0.2s ease;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+            transition: background-color 0.2s ease;
+        }
     </style>
 </head>
 <body x-data="{ sidebarOpen: false }">
