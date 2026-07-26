@@ -377,7 +377,8 @@
                     Dashboard
                 </a>
             </li>
-
+            
+            @if(auth()->check() && auth()->user()->role == 'bendahara')
             <li class="nav-item">
                 <a href="{{ route('bendahara.tahun_ajaran.index') }}"
                 class="nav-link {{ request()->routeIs('bendahara.tahun_ajaran.*') ? 'active' : '' }}">
@@ -386,7 +387,6 @@
                 </a>
             </li>
 
-            @if(auth()->check() && auth()->user()->role == 'bendahara')
             <li class="nav-item">
                 <a href="{{ route('bendahara.siswa.index') ?? '#' }}" 
                    class="nav-link {{ request()->routeIs('bendahara.siswa.*') ? 'active' : '' }}">
