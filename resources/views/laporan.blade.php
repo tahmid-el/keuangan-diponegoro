@@ -80,8 +80,30 @@
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 no-print">
     <div>
-        <h2 class="fw-bold text-dark mb-0">Laporan Jurnal Keuangan</h2>
-        <p class="text-muted mb-0">Rekapitulasi Pemasukan dan Pengeluaran</p>
+        @php
+            $months = [
+                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
+                '04' => 'April', '05' => 'Mei', '06' => 'Juni',
+                '07' => 'Juli', '08' => 'Agustus', '09' => 'September',
+                '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+            ];
+            $judulLaporan = match($jenisLaporan) {
+                'pendapatan' => 'Laporan Pendapatan',
+                'beban' => 'Laporan Beban',
+                'penghasilan_komprehensif' => 'Laporan Penghasilan Komprehensif (ISAK 35)',
+                'posisi_keuangan' => 'Laporan Posisi Keuangan (ISAK 35)',
+                'arus_kas' => 'Laporan Arus Kas',
+                default => 'Laporan'
+            };
+        @endphp
+        <h2 class="fw-bold text-dark mb-0">{{ $judulLaporan }}</h2>
+        <p class="text-muted mb-0">
+            @if($bulan)
+                Periode {{ $months[$bulan] ?? '' }} {{ $tahun }}
+            @else
+                Tahun {{ $tahun }}
+            @endif
+        </p>
     </div>
     
     <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -90,14 +112,7 @@
             <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-3 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
                 <i class="bi bi-calendar-month text-muted me-1"></i>
                 <select name="bulan" class="form-select border-0 bg-transparent py-1 pe-4" style="min-width: 130px; cursor: pointer;">
-                    @php
-                        $months = [
-                            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
-                            '04' => 'April', '05' => 'Mei', '06' => 'Juni',
-                            '07' => 'Juli', '08' => 'Agustus', '09' => 'September',
-                            '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
-                        ];
-                    @endphp
+                    <option value="" {{ $bulan == '' ? 'selected' : '' }}>Semua Bulan</option>
                     @foreach($months as $num => $name)
                         <option value="{{ $num }}" {{ $bulan == $num ? 'selected' : '' }}>{{ $name }}</option>
                     @endforeach
@@ -114,31 +129,28 @@
                 </select>
             </div>
             
-            <!-- Filter Jenis -->
+            <!-- Filter Jenis Laporan -->
             <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm px-2 py-1" style="border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px);">
                 <select name="jenis_laporan" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" style="min-width: 140px;">
-                    <option value="Semua" {{ $jenisLaporan == 'Semua' ? 'selected' : '' }}>Semua Transaksi</option>
-                    <option value="Pemasukan" {{ $jenisLaporan == 'Pemasukan' ? 'selected' : '' }}>Hanya Pemasukan</option>
-                    <option value="Pengeluaran" {{ $jenisLaporan == 'Pengeluaran' ? 'selected' : '' }}>Hanya Pengeluaran</option>
-                </select>
-                <div class="vr mx-1"></div>
-                <select name="kategori_id" class="form-select border-0 bg-transparent py-1 ps-2 pe-4" style="min-width: 160px;">
-                    <option value="">Semua Kategori</option>
-                    @foreach($kategoris as $k)
-                        <option value="{{ $k->id }}" {{ (string) $kategoriId === (string) $k->id ? 'selected' : '' }}>{{ $k->nama }} ({{ ucfirst($k->tipe) }})</option>
-                    @endforeach
+                    <option value="pendapatan" {{ $jenisLaporan == 'pendapatan' ? 'selected' : '' }}>Laporan Pendapatan (Pemasukan)</option>
+                    <option value="beban" {{ $jenisLaporan == 'beban' ? 'selected' : '' }}>Laporan Beban (Pengeluaran)</option>
+                    <option value="penghasilan_komprehensif" {{ $jenisLaporan == 'penghasilan_komprehensif' ? 'selected' : '' }}>Laporan Penghasilan Komprehensif (ISAK 35)</option>
+                    <option value="posisi_keuangan" {{ $jenisLaporan == 'posisi_keuangan' ? 'selected' : '' }}>Laporan Posisi Keuangan (ISAK 35)</option>
+                    <option value="arus_kas" {{ $jenisLaporan == 'arus_kas' ? 'selected' : '' }}>Laporan Arus Kas</option>
                 </select>
                 <div class="vr mx-1"></div>
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-medium" style="background-color: var(--sidebar-bg); border: none;">Terapkan</button>
             </div>
         </form>
         
-        <button onclick="exportToExcel()" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #10b981; border-color: #10b981; border-radius: 8px;">
-            <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
-        </button>
-        <a href="{{ url()->current() . '/print?' . http_build_query(request()->query()) }}" target="_blank" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #3b82f6; border-color: #3b82f6; border-radius: 8px; text-decoration: none;">
-            <i class="bi bi-printer me-1"></i> Cetak Laporan
-        </a>
+        <div>
+            <button onclick="exportToExcel()" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #10b981; border-color: #10b981; border-radius: 8px;">
+                <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+            </button>
+            <a href="{{ url()->current() . '/print?' . http_build_query(request()->query()) }}" target="_blank" class="btn text-white text-nowrap shadow-sm ms-2" style="padding: 0.5rem 1.25rem; background-color: #3b82f6; border-color: #3b82f6; border-radius: 8px; text-decoration: none;">
+                <i class="bi bi-printer me-1"></i> Cetak Laporan
+            </a>
+        </div>
     </div>
 </div>
 
@@ -165,8 +177,8 @@
         <div style="border-bottom: 1px solid #000; margin-bottom: 20px;"></div>
         
         <div style="text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 14pt; font-weight: bold;">LAPORAN</div>
-            <div style="font-size: 11pt;">Periode: {{ $months[$bulan] }} {{ $tahun }}</div>
+            <div style="font-size: 14pt; font-weight: bold;">{{ $judulLaporan }}</div>
+            <div style="font-size: 11pt;">Periode: @if($bulan) {{ $months[$bulan] }} {{ $tahun }} @else Tahun {{ $tahun }} @endif</div>
         </div>
     </div>
 
@@ -184,11 +196,11 @@
                 <h4 class="text-danger-custom fw-bold mb-0">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h4>
             </div>
         </div>
-        @if($kategoriId)
-        <div class="col-md-12">
+        @if($jenisLaporan == 'penghasilan_komprehensif' || $jenisLaporan == 'posisi_keuangan' || $jenisLaporan == 'arus_kas')
+        <div class="col-md-6">
             <div class="glass-card p-3">
-                <div class="text-muted small fw-medium mb-1">Total Kategori Terpilih</div>
-                <h4 class="fw-bold mb-0">Rp {{ number_format($totalPemasukan + $totalPengeluaran, 0, ',', '.') }}</h4>
+                <div class="text-muted small fw-medium mb-1">Surplus / Defisit</div>
+                <h4 class="fw-bold mb-0 {{ $saldoAkhir >= 0 ? 'text-success-custom' : 'text-danger-custom' }}">Rp {{ number_format(abs($saldoAkhir), 0, ',', '.') }}</h4>
             </div>
         </div>
         @endif
@@ -260,8 +272,8 @@ async function exportToExcel() {
     var rawData = {!! json_encode($laporan) !!};
     
     var monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    var monthName = monthNames[parseInt('{{ $bulan }}') - 1];
-    var period = monthName + ' {{ $tahun }}';
+    var monthName = '{{ $bulan }}' ? monthNames[parseInt('{{ $bulan }}') - 1] : '';
+    var period = monthName ? monthName + ' {{ $tahun }}' : 'Tahun {{ $tahun }}';
     
     var workbook = new ExcelJS.Workbook();
     var worksheet = workbook.addWorksheet('Laporan Keuangan');

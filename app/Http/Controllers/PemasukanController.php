@@ -138,9 +138,9 @@ class PemasukanController extends Controller
             return (int) $request->kategori_id;
         }
 
-        return Kategori::firstOrCreate([
-            'nama' => trim($request->kategori_baru),
-            'tipe' => 'pemasukan'
-        ])->id;
+        return Kategori::firstOrCreate(
+            ['nama' => trim($request->kategori_baru), 'tipe' => 'pemasukan'],
+            ['kelompok_isak35' => 'Pendapatan', 'status_pembatasan_dana' => 'Tanpa Pembatasan']
+        )->id;
     }
 }

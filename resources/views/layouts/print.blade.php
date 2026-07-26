@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Laporan Keuangan</title>
+    <title>@yield('title', 'Cetak Laporan')</title>
     <style>
-        /* Reset margin and padding for print */
         @page {
             size: A4;
             margin: 20mm;
@@ -17,15 +16,9 @@
             background-color: #fff;
             margin: 0;
             padding: 0;
-            /* Disable any shadows, blur, or transparency */
-            box-shadow: none !important;
-            backdrop-filter: none !important;
         }
-        
-        /* Kop Surat */
         .kop-surat {
             width: 100%;
-            border-bottom: 3px solid #000;
             margin-bottom: 2px;
             border-collapse: collapse;
         }
@@ -47,12 +40,6 @@
             height: 80px;
             object-fit: contain;
         }
-        .garis-bawah {
-            border-bottom: 1px solid #000;
-            margin-bottom: 20px;
-        }
-        
-        /* Judul Laporan */
         .judul-laporan {
             text-align: center;
             margin-bottom: 20px;
@@ -66,8 +53,6 @@
             margin: 5px 0 0 0;
             font-size: 11pt;
         }
-        
-        /* Tabel Data */
         .tabel-data {
             width: 100%;
             border-collapse: collapse;
@@ -79,23 +64,48 @@
             font-size: 11pt;
         }
         .tabel-data th {
-            background-color: #f3f4f6; /* Abu-abu muda */
+            background-color: #f3f4f6;
             font-weight: bold;
             text-align: center;
-            color: #000;
         }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .text-left { text-align: left; }
         .text-bold { font-weight: bold; }
-        
-        /* Tanda Tangan */
-        .tanda-tangan {
+        .section-title {
+            font-size: 13pt;
+            font-weight: bold;
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+        .sub-section {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-top: 16px;
+            margin-bottom: 4px;
+        }
+        .line-item {
+            font-size: 11pt;
+            padding: 2px 0;
+        }
+        .line-item td:first-child {
+            padding-left: 24px;
+        }
+        .total-line {
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 4px;
+            margin-top: 4px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .ttd-table {
             width: 100%;
             margin-top: 40px;
             page-break-inside: avoid;
         }
-        .tanda-tangan td {
+        .ttd-table td {
             width: 33%;
             text-align: center;
             vertical-align: top;
@@ -104,10 +114,10 @@
             height: 80px;
         }
     </style>
+    @stack('styles')
 </head>
 <body>
 
-    <!-- Kop Surat -->
     <table class="kop-surat">
         <tr>
             <td class="kop-logo">
@@ -119,12 +129,10 @@
                 <div style="font-size: 10pt;">NPSN : 20581699 | NSM : 121235100014</div>
                 <div style="font-size: 10pt;">Jl. Diponegoro No. 01, Tegalsari, Banyuwangi 68491</div>
             </td>
-            <!-- <td class="kop-logo">
-                Ruang opsional untuk logo kanan
-            </td> -->
         </tr>
     </table>
-    <div class="garis-bawah"></div>
+
+    <br>
 
     @php
         $monthsName = [
@@ -133,73 +141,30 @@
             '07' => 'Juli', '08' => 'Agustus', '09' => 'September',
             '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
         ];
+        $periodeLabel = $bulan
+            ? ($monthsName[$bulan] ?? $bulan) . ' ' . $tahun
+            : 'Tahun ' . $tahun;
     @endphp
 
-    <!-- Judul Laporan -->
     <div class="judul-laporan">
-        <h3>LAPORAN KEUANGAN</h3>
-        <p>Periode: {{ $monthsName[$bulan] ?? $bulan }} {{ $tahun }}</p>
+        <h3>@yield('judul', 'LAPORAN')</h3>
+        <p>Periode: {{ $periodeLabel }}</p>
     </div>
 
-    <!-- Tabel Data -->
-    <table class="tabel-data">
-        <thead>
-            <tr>
-                <th width="5%">No</th>
-                <th width="15%">Tanggal</th>
-                <th width="15%">Tipe</th>
-                <th width="20%">Kategori</th>
-                <th width="25%">Keterangan</th>
-                <th width="10%">Masuk</th>
-                <th width="10%">Keluar</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($laporan as $index => $item)
-                <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="text-center">{{ \Carbon\Carbon::parse($item['tanggal'])->translatedFormat('d M Y') }}</td>
-                    <td class="text-center">{{ $item['tipe'] }}</td>
-                    <td>{{ $item['kategori'] ?? '-' }}</td>
-                    <td>{{ $item['keterangan'] }}</td>
-                    <td class="text-right">{{ $item['pemasukan'] > 0 ? number_format($item['pemasukan'], 0, ',', '.') : '-' }}</td>
-                    <td class="text-right">{{ $item['pengeluaran'] > 0 ? number_format($item['pengeluaran'], 0, ',', '.') : '-' }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-center">Tidak ada data transaksi.</td>
-                </tr>
-            @endforelse
-        </tbody>
-        @if(count($laporan) > 0)
-        <tfoot>
-            <tr>
-                <td colspan="5" class="text-right text-bold">TOTAL:</td>
-                <td class="text-right text-bold">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</td>
-                <td class="text-right text-bold">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</td>
-            </tr>
-        </tfoot>
-        @endif
-    </table>
+    @yield('content')
 
-    <!-- Tanda Tangan -->
-    <table class="tanda-tangan">
+    <!-- <table class="ttd-table">
         <tr>
-            <td>
-                Mengetahui,<br>
-                Kepala Madrasah
-                <div class="ttd-space"></div>
-                <span style="font-weight: bold; text-decoration: underline;">...................................</span>
-            </td>
+            <td></td>
             <td></td>
             <td>
-                Banyuwangi, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}<br>
-                Bendahara
-                <div class="ttd-space"></div>
-                <span style="font-weight: bold; text-decoration: underline;">{{ Auth::user()->name }}</span>
+                Banyuwangi, {{ $periodeLabel }}<br>
+                Kepala Madrasah,<br><br><br><br>
+                <u style="font-weight: bold;">_____________________</u><br>
+                NIP. _____________________
             </td>
         </tr>
-    </table>
+    </table> -->
 
     <script>
         window.onload = function () {
