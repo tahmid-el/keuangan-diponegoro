@@ -115,9 +115,15 @@
 
                 <hr class="section-divider">
 
+                {{-- Dropdown Gaji (muncul jika kategori = Gaji) --}}
+                <div class="row g-3 mb-3" id="gaji-section" style="display: none;">
+                </div>
+
+                <hr class="section-divider">
+
                 @if(isset($pengeluaran))
                     {{-- ── Mode Edit (Single Row) ── --}}
-                    <div class="row g-2 align-items-end mb-3">
+                    <div class="row g-2 align-items-end mb-3" id="edit-manual-row">
                         <div class="col-md-6">
                             <label class="form-label-sm">Keterangan</label>
                             <input type="text" class="form-control" name="keterangan"
@@ -144,8 +150,19 @@
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-5">
                                     <label class="form-label-sm">Keterangan</label>
-                                    <input type="text" class="form-control" name="keterangan[]"
+                                    <input type="text" class="form-control keterangan-input" name="keterangan[]"
                                            placeholder="Contoh: Beli ATK" required>
+                                    <select class="form-select keterangan-select" name="keterangan[]" style="display:none;" required>
+                                        <option value="">-- Pilih Guru --</option>
+                                        @isset($gajis)
+                                            @foreach($gajis as $gaji)
+                                                <option value="Gaji - {{ $gaji->nama }}" data-gaji-id="{{ $gaji->id }}" data-jumlah="{{ $gaji->jumlah }}">
+                                                    {{ $gaji->nama }}
+                                                </option>
+                                            @endforeach
+                                        @endisset
+                                    </select>
+                                    <input type="hidden" class="gaji-id-input" name="gaji_id[]" value="">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label-sm">Nominal (Rp)</label>
@@ -214,14 +231,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('item-container');
     if (btnAdd && container) {
         btnAdd.addEventListener('click', function() {
+            const isGaji = kategoriInput.value.toLowerCase().includes('gaji');
             const row = document.createElement('div');
             row.className = 'item-row mb-2 position-relative';
+            
+            const keterField = isGaji ? `
+                <select class="form-select keterangan-select" name="keterangan[]" required>
+                    <option value="">-- Pilih Guru --</option>
+                    @isset($gajis)
+                        @foreach($gajis as $gaji)
+                            <option value="Gaji - {{ $gaji->nama }}" data-gaji-id="{{ $gaji->id }}" data-jumlah="{{ $gaji->jumlah }}">
+                                {{ $gaji->nama }}
+                            </option>
+                        @endforeach
+                    @endisset
+                </select>
+                <input type="hidden" class="gaji-id-input" name="gaji_id[]" value="">
+            ` : `
+                <input type="text" class="form-control keterangan-input" name="keterangan[]" placeholder="Contoh: Beli ATK" required>
+            `;
+
             row.innerHTML = `
                 <button type="button" class="btn-close position-absolute top-0 end-0 mt-1 me-1 btn-remove-item" style="font-size:0.7rem;z-index:10;" aria-label="Hapus"></button>
                 <div class="row g-2 align-items-end">
                     <div class="col-md-5">
                         <label class="form-label-sm">Keterangan</label>
-                        <input type="text" class="form-control" name="keterangan[]" placeholder="Contoh: Beli ATK" required>
+                        ${keterField}
                     </div>
                     <div class="col-md-3">
                         <label class="form-label-sm">Nominal (Rp)</label>
@@ -234,10 +269,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             container.appendChild(row);
+            recalcTotal();
         });
         container.addEventListener('click', function(e) {
             if (e.target.classList.contains('btn-remove-item')) {
                 e.target.closest('.item-row').remove();
+                recalcTotal();
             }
         });
     }
@@ -272,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             kategoriId.value    = k.id;
                             kategoriBaru.value  = '';
                             suggestions.style.display = 'none';
+                            toggleGajiSection();
                         };
                         suggestions.appendChild(item);
                     });
@@ -290,7 +328,55 @@ document.addEventListener('DOMContentLoaded', function() {
         kategoriBaru.value = this.value.trim();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => loadSuggestions(this.value.trim()), 200);
+        toggleGajiSection();
     });
+
+    function toggleGajiSection() {
+        const kategoriValue = kategoriInput.value.toLowerCase();
+        const gajiSection = document.getElementById('gaji-section');
+        const isGaji = kategoriValue.includes('gaji');
+        
+        if (gajiSection) {
+            gajiSection.style.display = isGaji ? 'block' : 'none';
+        }
+
+        document.querySelectorAll('.item-row').forEach(row => {
+            const keterInput = row.querySelector('.keterangan-input');
+            const keterSelect = row.querySelector('.keterangan-select');
+            const gajiIdInput = row.querySelector('.gaji-id-input');
+            
+            if (isGaji) {
+                if (keterInput) keterInput.style.display = 'none';
+                if (keterSelect) keterSelect.style.display = 'block';
+                if (gajiIdInput) gajiIdInput.removeAttribute('disabled');
+            } else {
+                if (keterInput) keterInput.style.display = 'block';
+                if (keterSelect) keterSelect.style.display = 'none';
+                if (keterSelect) keterSelect.value = '';
+                if (gajiIdInput) {
+                    gajiIdInput.value = '';
+                    gajiIdInput.setAttribute('disabled', 'disabled');
+                }
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('keterangan-select')) {
+                const row = e.target.closest('.item-row');
+                const gajiIdInput = row.querySelector('.gaji-id-input');
+                const nominalInput = row.querySelector('.nominal-input');
+                const selectedOption = e.target.options[e.target.selectedIndex];
+
+                if (selectedOption && selectedOption.dataset.gajiId) {
+                    gajiIdInput.value = selectedOption.dataset.gajiId;
+                    if (nominalInput) {
+                        nominalInput.value = parseInt(selectedOption.dataset.jumlah).toLocaleString('id-ID');
+                        recalcTotal();
+                    }
+                }
+            }
+        });
+    }
 
     document.addEventListener('click', function(e) {
         if (!kategoriInput.contains(e.target) && !suggestions.contains(e.target)) {

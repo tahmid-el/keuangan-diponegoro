@@ -429,6 +429,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{{ route('bendahara.gaji.index') ?? '#' }}" class="nav-link {{ request()->routeIs('bendahara.gaji.*') ? 'active' : '' }}">
+                    <i class="bi bi-person-badge"></i>
+                    Gaji
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{{ route('bendahara.pengeluaran.index') ?? '#' }}" class="nav-link {{ request()->routeIs('bendahara.pengeluaran.*') ? 'active' : '' }}">
                     <i class="bi bi-file-earmark-arrow-up"></i>
                     Pengeluaran

@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pengeluaran;
+use App\Models\Gaji;
 use App\Models\Kategori;
+use App\Models\Pengeluaran;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PengeluaranController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pengeluaran::with('kategori');
+        $query = Pengeluaran::with(['kategori', 'gaji']);
         $kategoris = Kategori::pengeluaran()->orderBy('nama')->get();
-        
+
         if ($request->filled('startdate') && $request->filled('enddate')) {
             $query->whereBetween('tanggal', [$request->startdate, $request->enddate]);
         }
@@ -24,21 +25,24 @@ class PengeluaranController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('keterangan', 'like', '%' . $request->search . '%')
-                  ->orWhereHas('kategori', function($kategori) use ($request) {
-                      $kategori->where('nama', 'like', '%' . $request->search . '%');
-                  });
+            $query->where(function ($q) use ($request) {
+                $q->where('keterangan', 'like', '%'.$request->search.'%')
+                    ->orWhereHas('kategori', function ($kategori) use ($request) {
+                        $kategori->where('nama', 'like', '%'.$request->search.'%');
+                    });
             });
         }
-        
+
         $pengeluarans = $query->orderBy('tanggal', 'desc')->paginate(10);
+
         return view('bendahara.pengeluaran.index', compact('pengeluarans', 'kategoris'));
     }
 
     public function create()
     {
-        return view('bendahara.pengeluaran.form');
+        $gajis = Gaji::orderBy('nama')->get();
+
+        return view('bendahara.pengeluaran.form', compact('gajis'));
     }
 
     public function store(Request $request)
@@ -59,6 +63,8 @@ class PengeluaranController extends Controller
             'keterangan.*' => 'required|string|max:255',
             'nominal' => 'required|array|min:1',
             'nominal.*' => 'required|numeric|min:0',
+            'gaji_id' => 'nullable|array',
+            'gaji_id.*' => 'nullable|exists:gajis,id',
             'bukti' => 'nullable|array',
             'bukti.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
@@ -75,6 +81,10 @@ class PengeluaranController extends Controller
                 'user_id' => $userId,
             ];
 
+            if ($request->has('gaji_id') && isset($request->gaji_id[$index])) {
+                $data['gaji_id'] = $request->gaji_id[$index];
+            }
+
             if ($request->hasFile("bukti.$index")) {
                 $data['bukti'] = $request->file("bukti.$index")->store('bukti/pengeluaran', 'public');
             }
@@ -88,7 +98,9 @@ class PengeluaranController extends Controller
     public function edit($id)
     {
         $pengeluaran = Pengeluaran::findOrFail($id);
-        return view('bendahara.pengeluaran.form', compact('pengeluaran'));
+        $gajis = Gaji::orderBy('nama')->get();
+
+        return view('bendahara.pengeluaran.form', compact('pengeluaran', 'gajis'));
     }
 
     public function update(Request $request, $id)
@@ -119,6 +131,7 @@ class PengeluaranController extends Controller
         }
 
         $pengeluaran->update($data);
+
         return redirect()->route('bendahara.pengeluaran.index')->with('success', 'Data Pengeluaran berhasil diperbarui.');
     }
 
@@ -129,6 +142,7 @@ class PengeluaranController extends Controller
             Storage::disk('public')->delete($pengeluaran->bukti);
         }
         $pengeluaran->delete();
+
         return redirect()->route('bendahara.pengeluaran.index')->with('success', 'Data Pengeluaran berhasil dihapus.');
     }
 

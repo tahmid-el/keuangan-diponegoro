@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pengeluaran extends Model
 {
-    protected $fillable = ['tanggal', 'keterangan', 'nominal', 'kategori_id', 'bukti', 'user_id'];
+    protected $fillable = ['tanggal', 'keterangan', 'nominal', 'kategori_id', 'gaji_id', 'bukti', 'user_id'];
 
     public function user()
     {
@@ -16,5 +16,10 @@ class Pengeluaran extends Model
     public function kategori()
     {
         return $this->belongsTo(Kategori::class);
+    }
+
+    public function gaji()
+    {
+        return $this->belongsTo(Gaji::class);
     }
 }

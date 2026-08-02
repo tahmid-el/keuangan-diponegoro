@@ -14,6 +14,7 @@ use App\Http\Controllers\TahunAjaranController;
 
 use App\Http\Controllers\PemasukanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GajiController;
 
 // ─────────────────────────────────────────────
 // HALAMAN UTAMA → redirect ke login
@@ -107,6 +108,14 @@ Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendah
     Route::get('/pemasukan/{id}/edit', [PemasukanController::class, 'edit'])->name('pemasukan.edit');
     Route::put('/pemasukan/{id}', [PemasukanController::class, 'update'])->name('pemasukan.update');
     Route::delete('/pemasukan/{id}', [PemasukanController::class, 'destroy'])->name('pemasukan.destroy');
+
+    // Gaji
+    Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
+    Route::get('/gaji/create', [GajiController::class, 'create'])->name('gaji.create');
+    Route::post('/gaji', [GajiController::class, 'store'])->name('gaji.store');
+    Route::get('/gaji/{gaji}/edit', [GajiController::class, 'edit'])->name('gaji.edit');
+    Route::put('/gaji/{gaji}', [GajiController::class, 'update'])->name('gaji.update');
+    Route::delete('/gaji/{gaji}', [GajiController::class, 'destroy'])->name('gaji.destroy');
 
     // Laporan
     Route::get('/laporan',                [BendaharaController::class, 'laporan'])->name('laporan');

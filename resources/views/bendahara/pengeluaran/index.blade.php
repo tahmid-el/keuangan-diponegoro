@@ -95,6 +95,7 @@
                     <th class="border-0 rounded-start">Tanggal</th>
                     <th class="border-0">Keterangan</th>
                     <th class="border-0">Kategori</th>
+                    <th class="border-0">Guru</th>
                     <th class="border-0">Nominal</th>
                     <th class="border-0">Bukti</th>
                     <th class="border-0 rounded-end text-center">Aksi</th>
@@ -108,6 +109,7 @@
                         <span class="fw-medium text-dark">{{ $p->keterangan }}</span>
                     </td>
                     <td><span class="badge bg-danger bg-opacity-10 text-danger">{{ $p->kategori->nama ?? '-' }}</span></td>
+                    <td>{{ $p->gaji->nama ?? '-' }}</td>
                     <td class="fw-bold text-danger">Rp {{ number_format($p->nominal, 0, ',', '.') }}</td>
                     <td>
                         @if($p->bukti)
@@ -135,7 +137,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">Belum ada data pengeluaran.</td>
+                    <td colspan="7" class="text-center text-muted py-4">Belum ada data pengeluaran.</td>
                 </tr>
                 @endforelse
             </tbody>

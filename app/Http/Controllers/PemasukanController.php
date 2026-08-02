@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pemasukan;
+use App\Models\Gaji;
 use App\Models\Kategori;
+use App\Models\Pemasukan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PemasukanController extends Controller
 {
@@ -14,7 +15,7 @@ class PemasukanController extends Controller
     {
         $query = Pemasukan::with('kategori');
         $kategoris = Kategori::pemasukan()->orderBy('nama')->get();
-        
+
         if ($request->filled('startdate') && $request->filled('enddate')) {
             $query->whereBetween('tanggal', [$request->startdate, $request->enddate]);
         }
@@ -24,15 +25,16 @@ class PemasukanController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('keterangan', 'like', '%' . $request->search . '%')
-                  ->orWhereHas('kategori', function($kategori) use ($request) {
-                      $kategori->where('nama', 'like', '%' . $request->search . '%');
-                  });
+            $query->where(function ($q) use ($request) {
+                $q->where('keterangan', 'like', '%'.$request->search.'%')
+                    ->orWhereHas('kategori', function ($kategori) use ($request) {
+                        $kategori->where('nama', 'like', '%'.$request->search.'%');
+                    });
             });
         }
-        
+
         $pemasukans = $query->orderBy('tanggal', 'desc')->paginate(10);
+
         return view('bendahara.pemasukan.index', compact('pemasukans', 'kategoris'));
     }
 
@@ -46,9 +48,11 @@ class PemasukanController extends Controller
         if ($request->has('nominal') && is_array($request->nominal)) {
             $nominals = [];
             foreach ($request->nominal as $n) {
-                $nominals[] = str_replace('.', '', $n);
+                $nominals[] = str_replace(['.', ','], '', $n);
             }
             $request->merge(['nominal' => $nominals]);
+        } else {
+            $request->merge(['nominal' => [str_replace(['.', ','], '', $request->input('nominal', 0))]]);
         }
 
         $request->validate([
@@ -119,6 +123,7 @@ class PemasukanController extends Controller
         }
 
         $pemasukan->update($data);
+
         return redirect()->route('bendahara.pemasukan.index')->with('success', 'Data Pemasukan berhasil diperbarui.');
     }
 
@@ -129,6 +134,7 @@ class PemasukanController extends Controller
             Storage::disk('public')->delete($pemasukan->bukti);
         }
         $pemasukan->delete();
+
         return redirect()->route('bendahara.pemasukan.index')->with('success', 'Data Pemasukan berhasil dihapus.');
     }
 
